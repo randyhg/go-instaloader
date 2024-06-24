@@ -1,0 +1,30 @@
+Host: 0.0.0.0:8091
+
+# SpreadSheet
+SpreadSheetId: "12c-0mUcrOe1UIxS53N6vLhC8fKxqWFyVaCDJASt-IiA"
+SheetName: "Sheet3"
+MaxFetchRange: "A2:E100"
+StatusColumn: "E"
+RemarkColumn: "F"
+
+# Queue
+DelayWhenNoJobInSeconds: 4
+DelayWhenErrorInSeconds: 5
+DelayWhenJobDoneInSeconds: 2
+
+# Google API Cred
+CredentialPath: "credentials.json"
+TokenPath: "token.json"
+
+# DB(s)
+ShowSql: true
+MySqlUrl: root:123456@tcp(127.0.0.1:3309)/xmdb?charset=utf8mb4&parseTime=True&loc=Local
+MySqlMaxIdle: 5
+MySqlMaxOpen: 10
+
+Redis:
+  Host: ['127.0.0.1:6379']
+  DB: 0
+  Password:
+  MaxIdle: 100
+  MaxActive: 500
