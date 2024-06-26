@@ -12,12 +12,13 @@ import (
 	"sync"
 )
 
-func CheckProfileURL(talent *models.Talent, url string) (bool, error) {
+func CheckProfileURL(talent *models.Talent, url string, isRetry bool) (bool, error) {
 	profile, err := instaloader.GetProfileNode(talent.Username)
 	if err != nil {
-		rlog.Error(err)
 		byt, _ := json.Marshal(talent)
-		fwRedis.RedisQueue().LPush(context.Background(), models.RedisJobQueueKey+"_err", string(byt))
+		if !isRetry {
+			fwRedis.RedisQueue().LPush(context.Background(), models.RedisJobQueueKey+"_err", string(byt))
+		}
 		return false, err
 	}
 

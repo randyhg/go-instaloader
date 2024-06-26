@@ -21,5 +21,5 @@ func (f *fetchController) FetchTalentData(ctx iris.Context) {
 		return
 	}
 
-	response.OkWithMessageV2("fetch talents success", nil, ctx)
+	response.OkWithMessageV2("fetch talents on progress", nil, ctx)
 }

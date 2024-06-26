@@ -17,12 +17,13 @@ import (
 	"sync"
 )
 
-func CheckStoryURL(talent *models.Talent, url string, storyLimit int) (bool, error) {
+func CheckStoryURL(talent *models.Talent, url string, storyLimit int, isRetry bool) (bool, error) {
 	stories, err := instaloader.GetStoryNode(talent.Username, storyLimit)
 	if err != nil {
-		rlog.Error(err)
 		byt, _ := json.Marshal(talent)
-		fwRedis.RedisQueue().LPush(context.Background(), models.RedisJobQueueKey+"_err", string(byt))
+		if !isRetry {
+			fwRedis.RedisQueue().LPush(context.Background(), models.RedisJobQueueKey+"_err", string(byt))
+		}
 		return false, err
 	}
 

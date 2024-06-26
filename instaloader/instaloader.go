@@ -24,7 +24,7 @@ func GetStoryNode(username string, intLimit int) (*response.StoryNodeResponse, e
 	params.Add("limit", limit)
 
 	fullURL := fmt.Sprintf("%s?%s", GetStoryNodeURL, params.Encode())
-	rlog.Debug("URL:", fullURL)
+	rlog.Debug(fmt.Sprintf("URL: %s", fullURL))
 
 	resp, err := http.Get(fullURL)
 	if err != nil {

@@ -1,11 +1,11 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/go-redis/redis/v8"
-	"github.com/kataras/iris/v12"
 	"go-instaloader/WebServer/checkers"
 	"go-instaloader/config"
 	"go-instaloader/models"
@@ -18,20 +18,29 @@ var VerifService = new(verifService)
 
 type verifService struct{}
 
-func (v *verifService) VerifTalentService(storyLimit int, url string, ctx iris.Context) error {
+func (v *verifService) VerifTalentService(storyLimit int, url string) error {
 	if storyLimit <= 0 || url == "" {
 		return errors.New("nothing to verif")
 	}
-	v.startVerification(ctx, url, storyLimit)
+	go v.startVerification(context.Background(), url, storyLimit, models.RedisJobQueueKey, false)
 	return nil
 }
 
-func (v *verifService) startVerification(ctx iris.Context, url string, storyLimit int) {
+func (v *verifService) RetryFailedVerificationService(storyLimit int, url string) error {
+	if storyLimit <= 0 || url == "" {
+		return errors.New("nothing to verif")
+	}
+	go v.startVerification(context.Background(), url, storyLimit, models.RedisJobQueueKey+"_err", true)
+	return nil
+}
+
+func (v *verifService) startVerification(ctx context.Context, url string, storyLimit int, queueKey string, isRetry bool) {
 	for {
-		q, err := fwRedis.RedisQueue().RPop(ctx, models.RedisJobQueueKey).Result()
+		q, err := fwRedis.RedisQueue().RPop(ctx, queueKey).Result()
 
 		if errors.Is(err, redis.Nil) {
-			rlog.Error("no queue")
+			//rlog.Error("no queue")
+			rlog.Info("job finished!")
 			break
 		}
 
@@ -47,7 +56,7 @@ func (v *verifService) startVerification(ctx iris.Context, url string, storyLimi
 			continue
 		}
 
-		isPass, err := v.CheckStoryAndProfile(talent, url, storyLimit)
+		isPass, err := v.CheckStoryAndProfile(talent, url, storyLimit, isRetry)
 		if err != nil || !isPass {
 			SheetService.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, err.Error())
 			continue
@@ -93,19 +102,19 @@ func (v *verifService) parseTalentQueue(s string) *models.Talent {
 	return talent
 }
 
-func (v *verifService) CheckStoryAndProfile(talent *models.Talent, url string, storyLimit int) (bool, error) {
+func (v *verifService) CheckStoryAndProfile(talent *models.Talent, url string, storyLimit int, isRetry bool) (bool, error) {
 	var isStoryHasUrl, isProfileHasUrl bool
 	var err error
 
 	// check story
-	isStoryHasUrl, err = checkers.CheckStoryURL(talent, url, storyLimit)
+	isStoryHasUrl, err = checkers.CheckStoryURL(talent, url, storyLimit, isRetry)
 	if err != nil {
 		rlog.Error(fmt.Sprintf("checking %s story node failed: %v", talent.Username, err))
 		return false, err
 	}
 
 	// check profile
-	isProfileHasUrl, err = checkers.CheckProfileURL(talent, url)
+	isProfileHasUrl, err = checkers.CheckProfileURL(talent, url, isRetry)
 	if err != nil {
 		rlog.Error(fmt.Sprintf("checking %s profile node failed: %v", talent.Username, err))
 		return false, err
