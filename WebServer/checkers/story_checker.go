@@ -44,22 +44,22 @@ func checkStoryUrl(stories *response.StoryNodeResponse, talent *models.Talent, u
 	var isHasUrl bool
 	var mu sync.Mutex
 	var wg sync.WaitGroup
+	var storyUrls []string
 
 	for i, story := range stories.Data {
 		wg.Add(1)
 
+		storyUrls = append(storyUrls, story.Node.DisplayURL)
 		go func(story *models.StoryNode) {
 			defer wg.Done()
 
 			// download story screenshot
 			downloadStoryImg(story, talent, i+1)
-
 			if story.IphoneStruct.StoryLinkStickers != nil {
 				for _, storyLink := range story.IphoneStruct.StoryLinkStickers {
 					storyUrl := storyLink.StoryLink.URL
 
 					if CheckUrl(url, storyUrl) {
-						rlog.Info(storyUrl)
 						mu.Lock()
 						isHasUrl = true
 						mu.Unlock()
@@ -69,6 +69,7 @@ func checkStoryUrl(stories *response.StoryNodeResponse, talent *models.Talent, u
 			}
 		}(story.Node)
 	}
+	talent.AddStoryUrls(storyUrls)
 
 	wg.Wait()
 	return isHasUrl

@@ -48,7 +48,6 @@ func checkProfileUrl(profile *response.ProfileNodeResponse, url string) bool {
 
 				bioUrl := bioLink.URL
 				if CheckUrl(url, bioUrl) {
-					rlog.Info(bioUrl)
 					mu.Lock()
 					isHasUrl = true
 					mu.Unlock()

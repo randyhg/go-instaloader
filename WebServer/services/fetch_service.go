@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/kataras/iris/v12"
 	"go-instaloader/models"
 	"go-instaloader/utils/fwRedis"
@@ -16,7 +17,7 @@ type fetchService struct{}
 func (s *fetchService) FetchTalent(fetchRange string, ctx iris.Context) error {
 	talents, err := SheetService.GetTalents(ctx, fetchRange)
 	if err != nil {
-		rlog.Error("unable to get talents:", err.Error())
+		rlog.Error(fmt.Sprintf("unable to get talents: %s", err.Error()))
 		return err
 	}
 

@@ -62,10 +62,15 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 			continue
 		}
 
+		talent.Status = models.StatusOk
+		if err = TalentService.UpsertTalentData(talent); err != nil {
+			rlog.Error(err)
+			SheetService.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, "failed to store talent data to DB")
+			continue
+		}
+
 		remark := fmt.Sprintf("both of %s's story and profile contain %s url", talent.Username, url)
 		SheetService.UpdateTalentStatus(ctx, models.StatusOk, talent.Uuid, remark)
-
-		// todo: store to DB
 
 		// Use goroutine for concurrent processing
 		//go func(talent *models.Talent) {
@@ -83,8 +88,6 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 		//
 		//	remark := fmt.Sprintf("both of %s's story and profile contain %s url", talent.Username, url)
 		//	SheetService.UpdateTalentStatus(ctx, models.StatusOk, talent.Uuid, remark)
-		//
-		//	// todo: store to DB
 		//
 		//}(talent)
 
