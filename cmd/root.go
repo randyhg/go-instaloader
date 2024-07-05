@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"go-instaloader/WebServer/app"
-	"go-instaloader/WebServer/services"
 	"go-instaloader/config"
 	"go-instaloader/utils/fwRedis"
 	"go-instaloader/utils/myDb"
@@ -41,7 +40,6 @@ func init() {
 }
 
 func start(cmd *cobra.Command, args []string) {
-	services.InitSheetService()
 	app.IrisInit()
 	app.IrisStart()
 }

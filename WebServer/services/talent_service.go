@@ -1,6 +1,7 @@
 package services
 
 import (
+	"go-instaloader/WebServer/caches"
 	"go-instaloader/models"
 	"go-instaloader/utils/myDb"
 	"go-instaloader/utils/rlog"
@@ -19,5 +20,6 @@ func (t *talentService) UpsertTalentData(talent *models.Talent) error {
 		rlog.Error(err)
 		return err
 	}
+	caches.TalentCache.Invalidate(talent.Username)
 	return nil
 }

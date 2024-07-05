@@ -13,13 +13,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 var FileNotExistErr = errors.New("file not exist")
 
-func GetHttpClient(jsonCredentialPath string) (client *http.Client, err error) {
+func GetHttpClient() (client *http.Client, err error) {
 	// read json credential file
-	b, err := os.ReadFile(jsonCredentialPath)
+	b, err := os.ReadFile(config.Instance.CredentialPath)
 	if err != nil {
 		rlog.Error("Unable to read client secret file: %v", err)
 		return nil, err
@@ -41,17 +42,25 @@ func GetHttpClient(jsonCredentialPath string) (client *http.Client, err error) {
 			tok = getTokenFromWeb(config1)
 
 			// save the token
-			rlog.Info("Saving credential file to: %s\n", tokFile)
-			f, err := os.OpenFile(tokFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-			if err != nil {
-				rlog.Fatal(fmt.Sprintf("Unable to cache oauth token: %v", err))
+			if err = saveTokenToFile(tokFile, tok); err != nil {
+				return nil, err
 			}
-			defer f.Close()
-			json.NewEncoder(f).Encode(tok)
 		} else {
 			rlog.Error("get token from %s err: %s", tokFile, err.Error())
 			return nil, tokErr
 		}
+	}
+
+	if tok.Expiry.Before(time.Now()) {
+		rlog.Info("token expired. refreshing the token....")
+		// do refresh token
+		refTok, err := refreshToken(tok, config1)
+		if err != nil {
+			rlog.Fatal(err)
+		}
+		// assign to client
+		client = config1.Client(context.Background(), refTok)
+		return client, nil
 	}
 
 	// assign to client
@@ -89,4 +98,33 @@ func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 		log.Fatalf("Unable to retrieve token from web: %v", err)
 	}
 	return tok
+}
+
+func refreshToken(tok *oauth2.Token, config1 *oauth2.Config) (*oauth2.Token, error) {
+	// Create a token source using the current token
+	tokenSource := config1.TokenSource(context.Background(), tok)
+
+	// Use the token source to get a new token
+	newToken, err := tokenSource.Token()
+	if err != nil {
+		return nil, err
+	}
+
+	if err = saveTokenToFile(config.Instance.TokenPath, tok); err != nil {
+		return nil, err
+	}
+
+	return newToken, nil
+}
+
+func saveTokenToFile(filePath string, token *oauth2.Token) error {
+	rlog.Info(fmt.Sprintf("Saving credential file to: %s", filePath))
+	f, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		rlog.Error(err)
+		return err
+	}
+	defer f.Close()
+	json.NewEncoder(f).Encode(token)
+	return nil
 }

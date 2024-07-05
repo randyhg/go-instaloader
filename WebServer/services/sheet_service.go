@@ -13,8 +13,6 @@ import (
 	"log"
 )
 
-var SheetService *sheetService
-
 type sheetService struct {
 	srv *sheets.Service
 }
@@ -27,22 +25,19 @@ type SheetRow struct {
 	Status   string `json:"status"`
 }
 
-func InitSheetService() {
-	if SheetService != nil {
-		return
-	}
-	client, err := google_auth.GetHttpClient(config.Instance.CredentialPath)
+func newSheetService() *sheetService {
+	client, err := google_auth.GetHttpClient()
 	if err != nil {
 		rlog.Error("Unable to get http client:", err.Error())
-		return
+		return nil
 	}
 
 	srv, err := sheets.NewService(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		rlog.Error(fmt.Sprintf("unable to retrieve Sheets client: %v", err))
-		return
+		return nil
 	}
-	SheetService = &sheetService{srv: srv}
+	return &sheetService{srv: srv}
 }
 
 func (s *sheetService) GetTalents(ctx context.Context, fetchRange string) ([]*models.Talent, error) {

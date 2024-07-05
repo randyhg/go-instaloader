@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"go-instaloader/WebServer/checkers"
-	"go-instaloader/config"
 	"go-instaloader/models"
 	"go-instaloader/utils/fwRedis"
 	"go-instaloader/utils/rlog"
+	"math/rand"
 	"time"
 )
 
@@ -56,43 +56,29 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 			continue
 		}
 
+		// create new sheet service
+		sheet := newSheetService()
+
 		isPass, err := v.CheckStoryAndProfile(talent, url, storyLimit, isRetry)
 		if err != nil || !isPass {
-			SheetService.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, err.Error())
+			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, err.Error())
 			continue
 		}
 
 		talent.Status = models.StatusOk
 		if err = TalentService.UpsertTalentData(talent); err != nil {
 			rlog.Error(err)
-			SheetService.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, "failed to store talent data to DB")
+			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, "failed to store talent data to DB")
 			continue
 		}
 
 		remark := fmt.Sprintf("both of %s's story and profile contain %s url", talent.Username, url)
-		SheetService.UpdateTalentStatus(ctx, models.StatusOk, talent.Uuid, remark)
+		sheet.UpdateTalentStatus(ctx, models.StatusOk, talent.Uuid, remark)
 
-		// Use goroutine for concurrent processing
-		//go func(talent *models.Talent) {
-		//	defer func() {
-		//		if r := recover(); r != nil {
-		//			rlog.Error("recovered from panic in goroutine:", r)
-		//		}
-		//	}()
-		//
-		//	isPass, err := v.CheckStoryAndProfile(talent, url, storyLimit)
-		//	if err != nil || !isPass {
-		//		SheetService.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, err.Error())
-		//		return
-		//	}
-		//
-		//	remark := fmt.Sprintf("both of %s's story and profile contain %s url", talent.Username, url)
-		//	SheetService.UpdateTalentStatus(ctx, models.StatusOk, talent.Uuid, remark)
-		//
-		//}(talent)
-
-		// Sleep outside of the goroutine to avoid delaying fetching the next job
-		i := time.Duration(config.Instance.DelayWhenJobDoneInSeconds)
+		//i := time.Duration(config.Instance.DelayWhenJobDoneInSeconds)
+		rand.Seed(time.Now().UnixNano())
+		i := time.Duration(rand.Intn(10) + 1)
+		rlog.Info(i, "))))))))))))))))))))")
 		time.Sleep(i * time.Second)
 	}
 }
