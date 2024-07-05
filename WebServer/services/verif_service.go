@@ -58,10 +58,20 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 
 		// create new sheet service
 		sheet := newSheetService()
+		if sheet == nil {
+			rlog.Error("sheet service is nil")
+			break
+		}
 
-		isPass, err := v.CheckStoryAndProfile(talent, url, storyLimit, isRetry)
-		if err != nil || !isPass {
+		isPass, resultMsg, err := v.CheckStoryAndProfile(talent, url, storyLimit, isRetry)
+		if err != nil {
 			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, err.Error())
+			rlog.Info("job paused!")
+			break
+		}
+
+		if !isPass {
+			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, resultMsg)
 			continue
 		}
 
@@ -91,35 +101,47 @@ func (v *verifService) parseTalentQueue(s string) *models.Talent {
 	return talent
 }
 
-func (v *verifService) CheckStoryAndProfile(talent *models.Talent, url string, storyLimit int, isRetry bool) (bool, error) {
-	var isStoryHasUrl, isProfileHasUrl bool
+func (v *verifService) CheckStoryAndProfile(talent *models.Talent, url string, storyLimit int, isRetry bool) (bool, string, error) {
+	var checkStoryResult, checkProfileResult bool
 	var err error
+	var resultMsg string
 
 	// check story
-	isStoryHasUrl, err = checkers.CheckStoryURL(talent, url, storyLimit, isRetry)
+	checkStoryResult, resultMsg, err = checkers.CheckStoryURL(talent, url, storyLimit, isRetry)
 	if err != nil {
-		rlog.Error(fmt.Sprintf("checking %s story node failed: %v", talent.Username, err))
-		return false, err
+		rlog.Error(fmt.Sprintf("checking %s's story node failed: %v", talent.Username, err))
+		return false, "", err
+	}
+
+	if !checkStoryResult {
+		return false, resultMsg, nil
 	}
 
 	// check profile
-	isProfileHasUrl, err = checkers.CheckProfileURL(talent, url, isRetry)
+	checkProfileResult, resultMsg, err = checkers.CheckProfileURL(talent, url, isRetry)
 	if err != nil {
-		rlog.Error(fmt.Sprintf("checking %s profile node failed: %v", talent.Username, err))
-		return false, err
+		rlog.Error(fmt.Sprintf("checking %s's profile node failed: %v", talent.Username, err))
+		return false, "", err
 	}
 
-	// determine the result
-	switch {
-	case isStoryHasUrl && isProfileHasUrl:
-		return true, nil
-	case !isStoryHasUrl && isProfileHasUrl:
-		return false, fmt.Errorf("%s's story does not contain the URL", talent.Username)
-	case isStoryHasUrl && !isProfileHasUrl:
-		return false, fmt.Errorf("%s's profile does not contain the URL", talent.Username)
-	default:
-		return false, fmt.Errorf("both %s's story and profile do not contain the URL", talent.Username)
+	if !checkProfileResult {
+		return false, resultMsg, nil
 	}
+
+	// pass
+	return true, "", nil
+
+	//// determine the result
+	//switch {
+	//case isStoryHasUrl && isProfileHasUrl:
+	//	return true, nil
+	//case !isStoryHasUrl && isProfileHasUrl:
+	//	return false, fmt.Errorf("%s's story does not contain the URL", talent.Username)
+	//case isStoryHasUrl && !isProfileHasUrl:
+	//	return false, fmt.Errorf("%s's profile does not contain the URL", talent.Username)
+	//default:
+	//	return false, fmt.Errorf("both %s's story and profile do not contain the URL", talent.Username)
+	//}
 }
 
 //for {

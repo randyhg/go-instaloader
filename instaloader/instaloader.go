@@ -42,6 +42,7 @@ func GetStoryNode(username string, intLimit int) (*response.StoryNodeResponse, e
 	var storyNode *response.StoryNodeResponse
 	if err = json.Unmarshal(body, &storyNode); err != nil {
 		rlog.Error(err)
+		err = fmt.Errorf("please renew session first")
 		return nil, err
 	}
 

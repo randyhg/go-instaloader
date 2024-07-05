@@ -9,7 +9,6 @@ import (
 	"go-instaloader/models"
 	"go-instaloader/models/response"
 	"go-instaloader/utils/fwRedis"
-	"go-instaloader/utils/rlog"
 	"io"
 	"net/http"
 	"os"
@@ -17,27 +16,23 @@ import (
 	"sync"
 )
 
-func CheckStoryURL(talent *models.Talent, url string, storyLimit int, isRetry bool) (bool, error) {
+func CheckStoryURL(talent *models.Talent, url string, storyLimit int, isRetry bool) (bool, string, error) {
 	stories, err := instaloader.GetStoryNode(talent.Username, storyLimit)
 	if err != nil {
 		byt, _ := json.Marshal(talent)
-		if !isRetry {
-			fwRedis.RedisQueue().LPush(context.Background(), models.RedisJobQueueKey+"_err", string(byt))
-		}
-		return false, err
+		fwRedis.RedisQueue().LPush(context.Background(), models.RedisJobQueueKey, string(byt))
+		return false, "", err
 	}
 
 	if len(stories.Data) == 0 {
-		err = fmt.Errorf("%s doesn't has a story right now", talent.Username)
-		rlog.Error(err)
-		return false, err
+		return false, fmt.Sprintf("%s doesn't has a story right now", talent.Username), nil
 	}
 
 	if checkStoryUrl(stories, talent, url) {
-		return true, nil
+		return true, "", nil
 	}
 
-	return false, fmt.Errorf("%s's story doesn't contain the URL", talent.Username)
+	return false, fmt.Sprintf("%s's story does not contain the URL", talent.Username), nil
 }
 
 func checkStoryUrl(stories *response.StoryNodeResponse, talent *models.Talent, url string) bool {

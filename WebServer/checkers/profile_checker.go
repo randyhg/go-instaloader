@@ -12,26 +12,26 @@ import (
 	"sync"
 )
 
-func CheckProfileURL(talent *models.Talent, url string, isRetry bool) (bool, error) {
+func CheckProfileURL(talent *models.Talent, url string, isRetry bool) (bool, string, error) {
 	profile, err := instaloader.GetProfileNode(talent.Username)
 	if err != nil {
 		byt, _ := json.Marshal(talent)
 		if !isRetry {
 			fwRedis.RedisQueue().LPush(context.Background(), models.RedisJobQueueKey+"_err", string(byt))
 		}
-		return false, err
+		return false, "", err
 	}
 
 	if profile == nil {
 		rlog.Error("profile not found")
-		return false, err
+		return false, fmt.Sprintf("%s's profile not found", talent.Username), nil
 	}
 
 	if checkProfileUrl(profile, url) {
-		return true, nil
+		return true, "", nil
 	}
 
-	return false, fmt.Errorf("%s's profile doesn't contain the URL", talent.Username)
+	return false, fmt.Sprintf("%s's profile doesn't contain the URL", talent.Username), nil
 }
 
 func checkProfileUrl(profile *response.ProfileNodeResponse, url string) bool {
