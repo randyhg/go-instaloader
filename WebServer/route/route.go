@@ -32,7 +32,6 @@ func RegisterRoutes(app *iris.Application) {
 	verifGroup := mainGroup.Party("/verification")
 	{
 		verifGroup.Post("", controllers.VerifController.VerifProfileAndStoryTalents)
-		verifGroup.Post("/retry", controllers.VerifController.RetryFailedVerification)
 	}
 
 	// api/talent

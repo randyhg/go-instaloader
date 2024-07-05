@@ -24,15 +24,3 @@ func (c *verifController) VerifProfileAndStoryTalents(ctx iris.Context) {
 	}
 	response.OkWithMessageV2("the job is running successfully", nil, ctx)
 }
-
-func (c *verifController) RetryFailedVerification(ctx iris.Context) {
-	req := request.GetBodyToMap(ctx)
-	storyLimit := request.GetValueIntDefault(req, "story_limit", models.DefaultStoryLimit)
-	url := request.GetValueString(req, "url")
-
-	if err := services.VerifService.RetryFailedVerificationService(storyLimit, url); err != nil {
-		response.FailWithMessageV2(err.Error(), ctx)
-		return
-	}
-	response.OkWithMessageV2("the job is running successfully", nil, ctx)
-}

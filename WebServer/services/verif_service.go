@@ -22,19 +22,11 @@ func (v *verifService) VerifTalentService(storyLimit int, url string) error {
 	if storyLimit <= 0 || url == "" {
 		return errors.New("nothing to verif")
 	}
-	go v.startVerification(context.Background(), url, storyLimit, models.RedisJobQueueKey, false)
+	go v.startVerification(context.Background(), url, storyLimit, models.RedisJobQueueKey)
 	return nil
 }
 
-func (v *verifService) RetryFailedVerificationService(storyLimit int, url string) error {
-	if storyLimit <= 0 || url == "" {
-		return errors.New("nothing to verif")
-	}
-	go v.startVerification(context.Background(), url, storyLimit, models.RedisJobQueueKey+"_err", true)
-	return nil
-}
-
-func (v *verifService) startVerification(ctx context.Context, url string, storyLimit int, queueKey string, isRetry bool) {
+func (v *verifService) startVerification(ctx context.Context, url string, storyLimit int, queueKey string) {
 	for {
 		q, err := fwRedis.RedisQueue().RPop(ctx, queueKey).Result()
 
@@ -53,6 +45,8 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 
 		if talent == nil {
 			rlog.Error("error parsing queue", q, err)
+			i := time.Duration(randomInt())
+			time.Sleep(i * time.Second)
 			continue
 		}
 
@@ -63,7 +57,7 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 			break
 		}
 
-		isPass, resultMsg, err := v.CheckStoryAndProfile(talent, url, storyLimit, isRetry)
+		isPass, resultMsg, err := v.CheckStoryAndProfile(talent, url, storyLimit)
 		if err != nil {
 			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, err.Error())
 			rlog.Info("job paused!")
@@ -72,6 +66,8 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 
 		if !isPass {
 			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, resultMsg)
+			i := time.Duration(randomInt())
+			time.Sleep(i * time.Second)
 			continue
 		}
 
@@ -79,6 +75,8 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 		if err = TalentService.UpsertTalentData(talent); err != nil {
 			rlog.Error(err)
 			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, "failed to store talent data to DB")
+			i := time.Duration(randomInt())
+			time.Sleep(i * time.Second)
 			continue
 		}
 
@@ -86,9 +84,7 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 		sheet.UpdateTalentStatus(ctx, models.StatusOk, talent.Uuid, remark)
 
 		//i := time.Duration(config.Instance.DelayWhenJobDoneInSeconds)
-		rand.Seed(time.Now().UnixNano())
-		i := time.Duration(rand.Intn(10) + 1)
-		rlog.Info(i, "))))))))))))))))))))")
+		i := time.Duration(randomInt())
 		time.Sleep(i * time.Second)
 	}
 }
@@ -101,13 +97,13 @@ func (v *verifService) parseTalentQueue(s string) *models.Talent {
 	return talent
 }
 
-func (v *verifService) CheckStoryAndProfile(talent *models.Talent, url string, storyLimit int, isRetry bool) (bool, string, error) {
+func (v *verifService) CheckStoryAndProfile(talent *models.Talent, url string, storyLimit int) (bool, string, error) {
 	var checkStoryResult, checkProfileResult bool
 	var err error
 	var resultMsg string
 
 	// check story
-	checkStoryResult, resultMsg, err = checkers.CheckStoryURL(talent, url, storyLimit, isRetry)
+	checkStoryResult, resultMsg, err = checkers.CheckStoryURL(talent, url, storyLimit)
 	if err != nil {
 		rlog.Error(fmt.Sprintf("checking %s's story node failed: %v", talent.Username, err))
 		return false, "", err
@@ -118,7 +114,7 @@ func (v *verifService) CheckStoryAndProfile(talent *models.Talent, url string, s
 	}
 
 	// check profile
-	checkProfileResult, resultMsg, err = checkers.CheckProfileURL(talent, url, isRetry)
+	checkProfileResult, resultMsg, err = checkers.CheckProfileURL(talent, url)
 	if err != nil {
 		rlog.Error(fmt.Sprintf("checking %s's profile node failed: %v", talent.Username, err))
 		return false, "", err
@@ -144,37 +140,10 @@ func (v *verifService) CheckStoryAndProfile(talent *models.Talent, url string, s
 	//}
 }
 
-//for {
-//q, err := fwRedis.RedisQueue().RPop(ctx, models.RedisJobQueueKey).Result()
-//
-//if errors.Is(err, redis.Nil) {
-//rlog.Error("no queue")
-//break
-//}
-//
-//if err != nil {
-//rlog.Error(models.RedisJobQueueKey, "error getting queue", err)
-//break
-//}
-//
-//talent := v.parseTalentQueue(q)
-//
-//if talent == nil {
-//rlog.Error("error parsing queue", q, err)
-//continue
-//}
-//
-//isPass, err := v.CheckStoryAndProfile(talent, url)
-//if err != nil || !isPass {
-//SheetService.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, err.Error())
-//continue
-//}
-//
-//remark := fmt.Sprintf("both of %s's story and profile contain %s url", talent.Username, url)
-//SheetService.UpdateTalentStatus(ctx, models.StatusOk, talent.Uuid, remark)
-//
-//// todo: store to DB
-//
-//i := time.Duration(config.Instance.DelayWhenJobDoneInSeconds)
-//time.Sleep(i * time.Second)
-//}
+func randomInt() int {
+	rand.Seed(time.Now().UnixNano())
+	arr := []int{6, 7, 8, 9, 10}
+	randomIndex := rand.Intn(len(arr))
+	randomValue := arr[randomIndex]
+	return randomValue
+}
