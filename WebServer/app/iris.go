@@ -25,12 +25,12 @@ func handleSignal(server net.Listener) {
 
 	go func() {
 		s := <-c
-		rlog.Info(fmt.Sprintf("got signal [%s], exiting now", s))
+		rlog.Infof("got signal [%s], exiting now", s)
 		if err := server.Close(); nil != err {
-			rlog.Error("server close failed: " + err.Error())
+			rlog.Error("server close failed", err.Error())
 		}
 
-		rlog.Info("Exited")
+		rlog.Info("exited")
 		os.Exit(0)
 	}()
 }

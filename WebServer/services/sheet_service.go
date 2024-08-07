@@ -28,13 +28,13 @@ type SheetRow struct {
 func newSheetService() *sheetService {
 	client, err := google_auth.GetHttpClient()
 	if err != nil {
-		rlog.Error("Unable to get http client:", err.Error())
+		rlog.Error("unable to get http client:", err.Error())
 		return nil
 	}
 
 	srv, err := sheets.NewService(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
-		rlog.Error(fmt.Sprintf("unable to retrieve Sheets client: %v", err))
+		rlog.Errorf("unable to retrieve Sheets client: %v", err)
 		return nil
 	}
 	return &sheetService{srv: srv}
@@ -59,11 +59,11 @@ func (s *sheetService) GetTalents(ctx context.Context, fetchRange string) ([]*mo
 		// username is empty
 		if sheetRow.Username == "" {
 			// update the status column to fail
-			rlog.Error(fmt.Sprintf("record %s is not complete", row[0].(string)))
+			rlog.Errorf("record %s is not complete", row[0].(string))
 
 			if sheetRow.Uuid != "" {
 				if err = s.UpdateTalentStatus(ctx, models.StatusFail, sheetRow.Uuid, "record is not complete!"); err != nil {
-					rlog.Error(fmt.Sprintf("unable to update status: %v", err))
+					rlog.Errorf("unable to update status: %v", err)
 				}
 			}
 			continue
@@ -77,7 +77,7 @@ func (s *sheetService) GetTalents(ctx context.Context, fetchRange string) ([]*mo
 		}
 
 		if err = s.UpdateTalentStatus(ctx, models.StatusOnProcess, sheetRow.Uuid, ""); err != nil {
-			rlog.Error(fmt.Sprintf("unable to update status: %v", err))
+			rlog.Errorf("unable to update status: %v", err)
 		}
 
 		talents = append(talents, talent)

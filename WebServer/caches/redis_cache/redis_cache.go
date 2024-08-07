@@ -141,7 +141,7 @@ func (c *RedisCache) Get(id int64, out interface{}) (interface{}, error) {
 	if val != nil {
 		if err := c.set(key, val); err != nil {
 			// The cache fails and an error is output. mysql hard resistance
-			rlog.Error("caching failed：%v", val)
+			rlog.Errorf("caching failed：%v", val)
 		}
 	}
 	return val, err
@@ -182,7 +182,7 @@ func (c *RedisCache) GetString(s string, out interface{}) (interface{}, error) {
 	if val != nil {
 		if err := c.set(key, val); err != nil {
 			// The cache fails and an error is output. mysql hard resistance
-			rlog.Error("caching failed：%v", val)
+			rlog.Errorf("caching failed：%v", val)
 		}
 	}
 	return val, err
@@ -219,7 +219,7 @@ func (c *RedisCache) GetByKey(key string) (interface{}, error) {
 	if val != nil {
 		if err := c.set(key, val); err != nil {
 			// The cache fails and an error is output. mysql hard resistance
-			rlog.Error("caching failed：%v", val)
+			rlog.Errorf("caching failed：%v", val)
 		}
 	}
 

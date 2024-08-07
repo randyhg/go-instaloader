@@ -43,8 +43,7 @@ func (r *rdsClient) connectDB(conf config.RedisConfig) {
 	if err != nil {
 		rlog.Fatal("redis connect ping failed, err:", err)
 	} else {
-		rlog.Debug("Redis connect ping response:", "pong", pong)
-		//rlog.Info("Redis DB: ", conf.DB)
+		rlog.Debug("redis connect ping response:", "pong", pong)
 		r.client = client
 	}
 }
