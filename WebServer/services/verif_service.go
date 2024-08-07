@@ -105,7 +105,7 @@ func (v *verifService) CheckStoryAndProfile(talent *models.Talent, url string, s
 	// check story
 	checkStoryResult, resultMsg, err = checkers.CheckStoryURL(talent, url, storyLimit)
 	if err != nil {
-		rlog.Error(fmt.Sprintf("checking %s's story node failed: %v", talent.Username, err))
+		rlog.Errorf("checking %s's story node failed: %v", talent.Username, err)
 		return false, "", err
 	}
 
@@ -116,7 +116,7 @@ func (v *verifService) CheckStoryAndProfile(talent *models.Talent, url string, s
 	// check profile
 	checkProfileResult, resultMsg, err = checkers.CheckProfileURL(talent, url)
 	if err != nil {
-		rlog.Error(fmt.Sprintf("checking %s's profile node failed: %v", talent.Username, err))
+		rlog.Errorf("checking %s's profile node failed: %v", talent.Username, err)
 		return false, "", err
 	}
 

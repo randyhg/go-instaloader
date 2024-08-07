@@ -2,7 +2,6 @@ package myDb
 
 import (
 	"database/sql"
-	"fmt"
 	"go-instaloader/config"
 	"go-instaloader/utils/rlog"
 	"gorm.io/driver/mysql"
@@ -35,7 +34,7 @@ func openDB(dsn string, config *gorm.Config, maxIdleConns, maxOpenConns int) (er
 	}
 
 	if db, err = gorm.Open(mysql.Open(dsn), config); err != nil {
-		rlog.Info(fmt.Sprintf("opens database failed: %v", err.Error()))
+		rlog.Infof("opens database failed: %v", err.Error())
 		return
 	}
 
@@ -73,5 +72,5 @@ func DBInit() {
 	} else {
 		db.Logger = db.Logger.LogMode(logger.Warn)
 	}
-	rlog.Info("MySQL connection established")
+	rlog.Debug("mySQL connection established")
 }

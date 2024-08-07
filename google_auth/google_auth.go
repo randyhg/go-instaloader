@@ -22,14 +22,14 @@ func GetHttpClient() (client *http.Client, err error) {
 	// read json credential file
 	b, err := os.ReadFile(config.Instance.CredentialPath)
 	if err != nil {
-		rlog.Error("Unable to read client secret file: %v", err)
+		rlog.Errorf("unable to read client secret file: %v", err)
 		return nil, err
 	}
 
 	// get config
 	config1, err := google.ConfigFromJSON(b, sheets.SpreadsheetsScope)
 	if err != nil {
-		rlog.Error(fmt.Sprintf("Unable to parse client secret file to config: %v", err))
+		rlog.Errorf("unable to parse client secret file to config: %v", err)
 		return nil, err
 	}
 
@@ -46,7 +46,7 @@ func GetHttpClient() (client *http.Client, err error) {
 				return nil, err
 			}
 		} else {
-			rlog.Error("get token from %s err: %s", tokFile, err.Error())
+			rlog.Errorf("get token from %s err: %s", tokFile, tokErr.Error())
 			return nil, tokErr
 		}
 	}
@@ -118,7 +118,7 @@ func refreshToken(tok *oauth2.Token, config1 *oauth2.Config) (*oauth2.Token, err
 }
 
 func saveTokenToFile(filePath string, token *oauth2.Token) error {
-	rlog.Info(fmt.Sprintf("Saving credential file to: %s", filePath))
+	rlog.Infof("saving credential file to: %s", filePath)
 	f, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		rlog.Error(err)

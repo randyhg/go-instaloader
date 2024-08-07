@@ -58,7 +58,7 @@ func verificationStart(cmd *cobra.Command, args []string) {
 
 		talent := parseTalentQueue(q)
 		if talent == nil {
-			rlog.Error("Error parsing queue", err)
+			rlog.Error("error parsing queue", err)
 			i := time.Duration(config.Instance.DelayWhenErrorInSeconds)
 			time.Sleep(i * time.Second)
 			continue
@@ -93,14 +93,14 @@ func CheckStoryAndProfile(talent *models.Talent) (bool, error) {
 	// check story
 	isStoryHasUrl, err = CheckStoryURL(talent)
 	if err != nil {
-		rlog.Error(fmt.Sprintf("checking %s story node failed: %v", talent.Username, err))
+		rlog.Errorf("checking %s story node failed: %v", talent.Username, err)
 		return false, err
 	}
 
 	// check profile
 	isProfileHasUrl, err = CheckProfileURL(talent)
 	if err != nil {
-		rlog.Error(fmt.Sprintf("checking %s profile node failed: %v", talent.Username, err))
+		rlog.Errorf("checking %s profile node failed: %v", talent.Username, err)
 		return false, err
 	}
 

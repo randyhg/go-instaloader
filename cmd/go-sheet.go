@@ -43,11 +43,11 @@ func GetTalents(client *http.Client, ctx context.Context) ([]*models.Talent, err
 		// username is empty
 		if sheetRow.Username == "" {
 			// update the status column to fail
-			rlog.Error(fmt.Sprintf("record %s is not complete", row[0].(string)))
+			rlog.Errorf("record %s is not complete", row[0].(string))
 
 			if sheetRow.Uuid != "" {
 				if err = UpdateTalentStatus(client, ctx, models.StatusFail, sheetRow.Uuid, "record is not complete!"); err != nil {
-					rlog.Error(fmt.Sprintf("unable to update status: %v", err))
+					rlog.Errorf("unable to update status: %v", err)
 				}
 			}
 			continue
@@ -61,7 +61,7 @@ func GetTalents(client *http.Client, ctx context.Context) ([]*models.Talent, err
 		}
 
 		if err = UpdateTalentStatus(client, ctx, models.StatusOnProcess, sheetRow.Uuid, ""); err != nil {
-			rlog.Error(fmt.Sprintf("unable to update status: %v", err))
+			rlog.Errorf("unable to update status: %v", err)
 		}
 
 		talents = append(talents, talent)

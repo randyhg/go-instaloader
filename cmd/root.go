@@ -36,7 +36,7 @@ func init() {
 	config.Init()
 	fwRedis.RedisInit()
 	myDb.DBInit()
-	rlog.Info("configs initiated successfully!!")
+	rlog.Debug("configs initiated successfully!!")
 }
 
 func start(cmd *cobra.Command, args []string) {
