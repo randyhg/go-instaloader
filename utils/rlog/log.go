@@ -62,15 +62,14 @@ func New(flag int) *Logger {
 	return logger
 }
 
-func (logger *Logger) printfLog(level int, a ...interface{}) {
+func (logger *Logger) printfLog(level int, format string, a ...interface{}) {
 	if logger.baseLogger == nil {
 		panic("logger closed")
 	}
 
-	msg := fmt.Sprint(a...)
 	fgColor, bgColor := getColor(level)
-	msg = fmt.Sprint(PrintWithColor(msg, Reset, fgColor, bgColor))
-	_ = logger.baseLogger.Output(3, msg)
+	format = fmt.Sprint(PrintWithColor(format, Reset, fgColor, bgColor))
+	_ = logger.baseLogger.Output(3, fmt.Sprintf(format, a...))
 
 	if level == fatalLvl {
 		os.Exit(1)
@@ -116,20 +115,20 @@ func Fatal(a ...any) {
 	loggers.printLog(fatalLvl, a...)
 }
 
-func Debugf(a ...any) {
-	loggers.printfLog(debugLvl, a...)
+func Debugf(format string, a ...any) {
+	loggers.printfLog(debugLvl, format, a...)
 }
 
-func Infof(a ...any) {
-	loggers.printfLog(infoLvl, a...)
+func Infof(format string, a ...any) {
+	loggers.printfLog(infoLvl, format, a...)
 }
 
-func Errorf(a ...any) {
-	loggers.printfLog(errorLvl, a...)
+func Errorf(format string, a ...any) {
+	loggers.printfLog(errorLvl, format, a...)
 }
 
-func Fatalf(a ...any) {
-	loggers.printfLog(fatalLvl, a...)
+func Fatalf(format string, a ...any) {
+	loggers.printfLog(fatalLvl, format, a...)
 }
 
 func PrettyPrintJSON(data interface{}) {
