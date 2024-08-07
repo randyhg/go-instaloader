@@ -3,6 +3,7 @@ package rlog
 import (
 	"encoding/json"
 	"fmt"
+	"gopkg.in/natefinch/lumberjack.v2"
 	"io"
 	"log"
 	"os"
@@ -38,7 +39,7 @@ func getColor(level int) (fg FontStyle, bg FontStyle) {
 	return
 }
 
-var loggers = New(Lshortfile | LstdFlags)
+var loggers = New("", "", "dev", false, Lshortfile|LstdFlags)
 
 func GetLogger() *Logger {
 	return loggers
@@ -53,8 +54,43 @@ type Logger struct {
 	baseLogger *log.Logger
 }
 
-func New(flag int) *Logger {
-	baseLogger := log.New(os.Stdout, "", flag)
+func Export(logger *Logger) {
+	if loggers != nil {
+		loggers.Close()
+		loggers = nil
+	}
+
+	if logger != nil {
+		loggers = logger
+	}
+}
+
+func (logger *Logger) Close() {
+	logger.baseLogger = nil
+}
+
+func New(dir, fileName, env string, logCompress bool, flag int) *Logger {
+	var baseLogger *log.Logger
+
+	if dir != "" {
+		hook := &lumberjack.Logger{
+			Filename:   dir + fileName,
+			MaxSize:    10,
+			MaxBackups: 30,
+			MaxAge:     7,
+			Compress:   logCompress,
+			LocalTime:  true,
+		}
+
+		if env == "dev" {
+			mw := io.MultiWriter(hook, os.Stdout)
+			baseLogger = log.New(mw, "", flag)
+		} else {
+			baseLogger = log.New(hook, "", flag)
+		}
+	} else {
+		baseLogger = log.New(os.Stdout, "", flag)
+	}
 
 	logger := new(Logger)
 	logger.baseLogger = baseLogger
@@ -67,8 +103,8 @@ func (logger *Logger) printfLog(level int, format string, a ...interface{}) {
 		panic("logger closed")
 	}
 
-	fgColor, bgColor := getColor(level)
-	format = fmt.Sprint(PrintWithColor(format, Reset, fgColor, bgColor))
+	//fgColor, bgColor := getColor(level)
+	//format = fmt.Sprint(PrintWithColor(format, Reset, fgColor, bgColor))
 	_ = logger.baseLogger.Output(3, fmt.Sprintf(format, a...))
 
 	if level == fatalLvl {
@@ -90,8 +126,8 @@ func (logger *Logger) printLog(level int, a ...interface{}) {
 		}
 	}
 	msg := fmt.Sprint(p...)
-	fgColor, bgColor := getColor(level)
-	msg = fmt.Sprint(PrintWithColor(msg, Reset, fgColor, bgColor))
+	//fgColor, bgColor := getColor(level)
+	//msg = fmt.Sprint(PrintWithColor(msg, Reset, fgColor, bgColor))
 	_ = logger.baseLogger.Output(3, msg)
 
 	if level == fatalLvl {

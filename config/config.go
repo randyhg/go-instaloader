@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
+	"go-instaloader/utils/rlog"
 	"log"
 
 	"github.com/spf13/viper"
@@ -12,6 +13,7 @@ var Instance Config
 
 type Config struct {
 	Host string `yaml:"Host"`
+	Env  string `yaml:"Env"`
 
 	// spreadsheet
 	SpreadSheetId string `yaml:"SpreadSheetId"`
@@ -35,6 +37,10 @@ type Config struct {
 	MySqlMaxIdle int         `yaml:"MySqlMaxIdle"`
 	MySqlMaxOpen int         `yaml:"MySqlMaxOpen"`
 	Redis        RedisConfig `yaml:"Redis"`
+
+	// log
+	LogDir      string `yaml:"LogDir"`
+	LogFileName string `yaml:"LogFileName"`
 }
 
 type RedisConfig struct {
@@ -57,6 +63,7 @@ func Init() {
 	if err != nil {
 		log.Fatalf("unable to decode into struct, %v", err)
 	}
+	WriteLog()
 	fullSheetRange(&Instance)
 
 	// auto reload config if there is any changes
@@ -66,10 +73,24 @@ func Init() {
 		if err != nil {
 			log.Fatalf("unable to decode into struct, %v", err)
 		}
+		WriteLog()
 		fullSheetRange(&Instance)
 	})
+
 }
 
 func fullSheetRange(config *Config) {
 	config.MaxFetchRange = fmt.Sprintf("%s!%s", config.SheetName, config.MaxFetchRange)
+}
+
+func WriteLog() {
+	if Instance.Env != "" {
+		l := rlog.New(
+			Instance.LogDir,
+			Instance.LogFileName,
+			Instance.Env,
+			true,
+			log.LstdFlags|log.Lshortfile)
+		rlog.Export(l)
+	}
 }
