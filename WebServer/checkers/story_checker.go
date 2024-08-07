@@ -9,6 +9,8 @@ import (
 	"go-instaloader/models"
 	"go-instaloader/models/response"
 	"go-instaloader/utils/fwRedis"
+	"go-instaloader/utils/imgur"
+	"go-instaloader/utils/rlog"
 	"io"
 	"net/http"
 	"os"
@@ -44,7 +46,7 @@ func checkStoryUrl(stories *response.StoryNodeResponse, talent *models.Talent, u
 	for i, story := range stories.Data {
 		wg.Add(1)
 
-		storyUrls = append(storyUrls, story.Node.DisplayURL)
+		//storyUrls = append(storyUrls, story.Node.DisplayURL)
 		go func(story *models.StoryNode) {
 			defer wg.Done()
 
@@ -56,6 +58,17 @@ func checkStoryUrl(stories *response.StoryNodeResponse, talent *models.Talent, u
 
 					if CheckUrl(url, storyUrl) {
 						mu.Lock()
+						imgurLink, err := imgur.UploadImageToImgur(story.DisplayURL)
+						if err != nil {
+							rlog.Error(err)
+						}
+
+						if imgurLink != "" {
+							storyUrls = append(storyUrls, imgurLink)
+						} else {
+							storyUrls = append(storyUrls, story.DisplayURL)
+						}
+
 						isHasUrl = true
 						mu.Unlock()
 						return
@@ -64,9 +77,9 @@ func checkStoryUrl(stories *response.StoryNodeResponse, talent *models.Talent, u
 			}
 		}(story.Node)
 	}
-	talent.AddStoryUrls(storyUrls)
 
 	wg.Wait()
+	talent.AddStoryUrls(storyUrls)
 	return isHasUrl
 }
 
