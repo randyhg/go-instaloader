@@ -13,7 +13,9 @@ var TalentService = new(talentService)
 type talentService struct{}
 
 func (t *talentService) UpsertTalentData(talent *models.Talent) error {
-	if err := myDb.GetDb().Clauses(clause.OnConflict{
+	tableName := myDb.GetMonthTableName(models.Talent{})
+
+	if err := myDb.GetDb().Table(tableName).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: talent.Uuid}},
 		DoUpdates: clause.AssignmentColumns([]string{"status", "story_img_url"}),
 	}).Create(&talent).Error; err != nil {
