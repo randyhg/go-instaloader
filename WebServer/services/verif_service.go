@@ -31,7 +31,6 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 		q, err := fwRedis.RedisQueue().RPop(ctx, queueKey).Result()
 
 		if errors.Is(err, redis.Nil) {
-			//rlog.Error("no queue")
 			rlog.Info("job finished!")
 			break
 		}
@@ -64,6 +63,7 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 			break
 		}
 
+		// verification failed
 		if !isPass {
 			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, resultMsg)
 			i := time.Duration(randomInt())
@@ -71,6 +71,7 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 			continue
 		}
 
+		// verification pass
 		talent.Status = models.StatusOk
 		if err = TalentService.UpsertTalentData(talent); err != nil {
 			rlog.Error(err)
