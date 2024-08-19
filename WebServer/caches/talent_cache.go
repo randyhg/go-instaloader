@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const TalentCacheTimeOut = 3600 * 2
+const TalentCacheTimeOut = 3600 * 1
 
 type talentCache struct {
 	cache *redis_cache.RedisCache
@@ -33,8 +33,9 @@ func newTalentCache() *talentCache {
 func (c *talentCache) loader(key redis_cache.Key) (value redis_cache.Value, err error) {
 	username := key2String(key)
 	ret := &models.Talent{}
+	tableName := myDb.GetMonthTableName(models.Talent{})
 
-	if err = myDb.GetDb().First(&ret, "username = ?", username).Error; err != nil {
+	if err = myDb.GetDb().Table(tableName).First(&ret, "username = ?", username).Error; err != nil {
 		rlog.Error(err)
 		return nil, err
 	}
