@@ -13,7 +13,7 @@ var TalentController = new(talentController)
 
 type talentController struct{}
 
-func (t *talentController) GetTalent(ctx iris.Context) {
+func (t *talentController) GetTalentDetail(ctx iris.Context) {
 	req := request.GetBodyToMap(ctx)
 	username := request.GetValueString(req, "username")
 
