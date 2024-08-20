@@ -57,6 +57,9 @@ func (c *talentCache) Get(username string) *models.Talent {
 	}
 
 	user := val.(*models.Talent)
+	if user != nil {
+		user.StoryImgUrl = user.GetStoryUrls()
+	}
 	return user
 }
 

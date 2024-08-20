@@ -1,7 +1,9 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
+	"go-instaloader/utils/rlog"
 	"strings"
 )
 
@@ -10,7 +12,13 @@ func (t *Talent) AddStoryUrls(links []string) {
 	t.StoryImgUrl = joinedStr
 }
 
-func (t *Talent) GetStoryUrls() []string {
+func (t *Talent) GetStoryUrls() string {
 	trimmed := strings.Trim(t.StoryImgUrl, "[]")
-	return strings.Split(trimmed, ", ")
+	urls := strings.Split(trimmed, ", ")
+	byt, err := json.Marshal(&urls)
+	if err != nil {
+		rlog.Error(err)
+		return ""
+	}
+	return string(byt)
 }
