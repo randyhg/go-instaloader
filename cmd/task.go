@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"encoding/json"
 	"github.com/robfig/cron"
 	"github.com/spf13/cobra"
+	"go-instaloader/WebServer/caches"
 	"go-instaloader/models"
 	"go-instaloader/utils/myDb"
 	"go-instaloader/utils/rlog"
@@ -30,6 +32,13 @@ func taskStart(cmd *cobra.Command, args []string) {
 		log.Fatal("Error adding cron job:", err)
 	}
 
+	err = c.AddFunc("*/300 * * * *", func() { // 5 minutes
+		getTalentData()
+	})
+	if err != nil {
+		log.Fatal("Error adding cron job:", err)
+	}
+
 	c.Start()
 	rlog.Info("task started...")
 	select {}
@@ -49,4 +58,21 @@ func createNextMothTable(dst schema.Tabler) {
 	if err := myDb.CreateMonthTable(myDb.GetDb(), dst, nextTableName); err != nil {
 		rlog.Error("create next month table", nextTableName, "error:", err.Error())
 	}
+}
+
+func getTalentData() {
+	tableName := myDb.GetMonthTableName(models.Talent{})
+	var talents []models.Talent
+	err := myDb.GetDb().Table(tableName).Find(&talents).Error
+	if err != nil {
+		rlog.Error(err)
+		return
+	}
+
+	byt, err := json.Marshal(&talents)
+	if err != nil {
+		rlog.Error(err)
+		return
+	}
+	caches.TalentCache.SetAllTalents(tableName, string(byt))
 }
