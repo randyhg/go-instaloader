@@ -30,6 +30,7 @@ func (t *talentService) UpdateTalentData(talent *models.Talent) error {
 	tableName := myDb.GetMonthTableName(models.Talent{})
 	var existingTalent *models.Talent
 	if err := myDb.GetDb().Table(tableName).First(&existingTalent, talent.Id).Error; err != nil {
+		rlog.Error(err)
 		return err
 	}
 	existingTalent.Username = talent.Username
@@ -37,6 +38,21 @@ func (t *talentService) UpdateTalentData(talent *models.Talent) error {
 	existingTalent.Status = talent.Status
 	existingTalent.StoryImgUrl = talent.StoryImgUrl
 
-	err := myDb.GetDb().Table(tableName).Save(&existingTalent).Error
-	return err
+	if err := myDb.GetDb().Table(tableName).Save(&existingTalent).Error; err != nil {
+		rlog.Error(err)
+		return err
+	}
+	caches.TalentCache.Invalidate(talent.Username)
+	return nil
+}
+
+func (c *talentService) DeleteTalentData(talent *models.Talent) error {
+	tableName := myDb.GetMonthTableName(models.Talent{})
+	err := myDb.GetDb().Table(tableName).Where("username = ?", talent.Username).Delete(&models.Talent{}).Error
+	if err != nil {
+		rlog.Error(err)
+		return err
+	}
+	caches.TalentCache.Invalidate(talent.Username)
+	return nil
 }
