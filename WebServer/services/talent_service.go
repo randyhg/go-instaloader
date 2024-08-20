@@ -25,3 +25,18 @@ func (t *talentService) UpsertTalentData(talent *models.Talent) error {
 	caches.TalentCache.Invalidate(talent.Username)
 	return nil
 }
+
+func (t *talentService) UpdateTalentData(talent *models.Talent) error {
+	tableName := myDb.GetMonthTableName(models.Talent{})
+	var existingTalent *models.Talent
+	if err := myDb.GetDb().Table(tableName).First(&existingTalent, talent.Id).Error; err != nil {
+		return err
+	}
+	existingTalent.Username = talent.Username
+	existingTalent.Url = talent.Url
+	existingTalent.Status = talent.Status
+	existingTalent.StoryImgUrl = talent.StoryImgUrl
+
+	err := myDb.GetDb().Table(tableName).Save(&existingTalent).Error
+	return err
+}

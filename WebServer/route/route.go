@@ -38,5 +38,7 @@ func RegisterRoutes(app *iris.Application) {
 	talentGroup := mainGroup.Party("/talent")
 	{
 		talentGroup.Get("/detail", controllers.TalentController.GetTalent)
+		talentGroup.Post("/update", controllers.TalentController.UpdateTalent)
+		talentGroup.Post("/delete", controllers.TalentController.DeleteTalent)
 	}
 }
