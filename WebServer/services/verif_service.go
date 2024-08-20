@@ -40,8 +40,8 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 			break
 		}
 
+		// parse talent
 		talent := v.parseTalentQueue(q)
-
 		if talent == nil {
 			rlog.Error("error parsing queue", q, err)
 			i := time.Duration(randomInt())
@@ -56,6 +56,7 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 			break
 		}
 
+		// check talent story and profile
 		isPass, resultMsg, err := v.CheckStoryAndProfile(talent, url, storyLimit)
 		if err != nil {
 			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, err.Error())
@@ -63,28 +64,26 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 			break
 		}
 
-		// verification failed
-		if !isPass {
-			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, resultMsg)
-			i := time.Duration(randomInt())
-			time.Sleep(i * time.Second)
-			continue
+		var remark string
+		if isPass { // verification pass
+			talent.Status = models.StatusOk
+			remark = fmt.Sprintf("both of %s's story and profile contain %s url", talent.Username, url)
+		} else { // verification failed
+			talent.Status = models.StatusFail
+			remark = resultMsg
 		}
 
-		// verification pass
-		talent.Status = models.StatusOk
+		// store to DB
 		if err = TalentService.UpsertTalentData(talent); err != nil {
 			rlog.Error(err)
-			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, "failed to store talent data to DB")
+			remark = fmt.Sprint("failed to store talent data to DB")
+			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, remark)
 			i := time.Duration(randomInt())
 			time.Sleep(i * time.Second)
 			continue
 		}
 
-		remark := fmt.Sprintf("both of %s's story and profile contain %s url", talent.Username, url)
-		sheet.UpdateTalentStatus(ctx, models.StatusOk, talent.Uuid, remark)
-
-		//i := time.Duration(config.Instance.DelayWhenJobDoneInSeconds)
+		sheet.UpdateTalentStatus(ctx, talent.Status, talent.Uuid, remark)
 		i := time.Duration(randomInt())
 		time.Sleep(i * time.Second)
 	}
