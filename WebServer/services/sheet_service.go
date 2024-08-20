@@ -2,11 +2,13 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"go-instaloader/config"
 	"go-instaloader/google_auth"
 	"go-instaloader/models"
+	"go-instaloader/utils/fwRedis"
 	"go-instaloader/utils/rlog"
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
@@ -78,6 +80,15 @@ func (s *sheetService) GetTalents(ctx context.Context, fetchRange string) ([]*mo
 
 		if err = s.UpdateTalentStatus(ctx, models.StatusOnProcess, sheetRow.Uuid, ""); err != nil {
 			rlog.Errorf("unable to update status: %v", err)
+		}
+
+		if len(talent.Uuid) > 0 {
+			byt, err := json.Marshal(&talent)
+			if err != nil {
+				rlog.Error(err)
+			} else {
+				fwRedis.RedisQueue().LPush(context.Background(), models.RedisJobQueueKey, string(byt))
+			}
 		}
 
 		talents = append(talents, talent)

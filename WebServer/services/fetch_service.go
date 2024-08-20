@@ -1,12 +1,8 @@
 package services
 
 import (
-	"context"
-	"encoding/json"
 	"errors"
 	"github.com/kataras/iris/v12"
-	"go-instaloader/models"
-	"go-instaloader/utils/fwRedis"
 	"go-instaloader/utils/rlog"
 )
 
@@ -31,16 +27,6 @@ func (s *fetchService) FetchTalent(fetchRange string, ctx iris.Context) error {
 			//return nil
 		}
 
-		for _, talent := range talents {
-			if len(talent.Uuid) > 0 {
-				byt, err := json.Marshal(&talent)
-				if err != nil {
-					rlog.Error(err)
-				} else {
-					fwRedis.RedisQueue().LPush(context.Background(), models.RedisJobQueueKey, string(byt))
-				}
-			}
-		}
 		rlog.Info("talents data pushed to redis")
 	}()
 	return nil
