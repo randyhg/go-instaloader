@@ -25,6 +25,7 @@ func CheckProfileURL(talent *models.Talent, url string) (bool, string, error) {
 		return false, fmt.Sprintf("%s's profile not found", talent.Username), nil
 	}
 
+	talent.ProfilePicUrl = profile.Data.ProfilePicURLHd
 	if checkProfileUrl(profile, url) {
 		return true, "", nil
 	}
