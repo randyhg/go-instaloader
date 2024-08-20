@@ -1,5 +1,10 @@
 package constants
 
+import "time"
+
+const AllTalentCacheExp = 300 * time.Second
+
 const (
-	TalentCacheKey = "cache/talent"
+	AllTalentCacheKey = "cache/talent/all"
+	TalentCacheKey    = "cache/talent"
 )

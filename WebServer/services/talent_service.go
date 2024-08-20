@@ -12,6 +12,18 @@ var TalentService = new(talentService)
 
 type talentService struct{}
 
+func (t *talentService) GetTalentList(tableName string, page, limit int) []*models.Talent {
+	talents := caches.TalentCache.GetAllTalents(tableName)
+	if len(talents) == 0 {
+		return make([]*models.Talent, 0)
+	}
+
+	// pagination
+	start := (page - 1) * limit
+	end := start + limit
+	return talents[start:end]
+}
+
 func (t *talentService) UpsertTalentData(talent *models.Talent) error {
 	tableName := myDb.GetMonthTableName(models.Talent{})
 

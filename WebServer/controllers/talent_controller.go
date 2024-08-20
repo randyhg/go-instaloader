@@ -7,11 +7,23 @@ import (
 	"go-instaloader/models"
 	"go-instaloader/models/request"
 	"go-instaloader/models/response"
+	"go-instaloader/utils/myDb"
 )
 
 var TalentController = new(talentController)
 
 type talentController struct{}
+
+func (t *talentController) GetTalentList(ctx iris.Context) {
+	req := request.GetBodyToMap(ctx)
+	page, limit := request.GetValuePageInfo(req)
+
+	tableName := myDb.GetMonthTableName(models.Talent{}) // TODO: get list by date
+	
+	talents := services.TalentService.GetTalentList(tableName, page, limit)
+	response.OkWithMessageV2("ok", talents, ctx)
+	return
+}
 
 func (t *talentController) GetTalentDetail(ctx iris.Context) {
 	req := request.GetBodyToMap(ctx)

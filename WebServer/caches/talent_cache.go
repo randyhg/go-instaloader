@@ -1,10 +1,15 @@
 package caches
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/go-redis/redis/v8"
 	"go-instaloader/WebServer/caches/redis_cache"
 	"go-instaloader/models"
 	"go-instaloader/models/constants"
+	"go-instaloader/utils/fwRedis"
 	"go-instaloader/utils/myDb"
 	"go-instaloader/utils/rlog"
 	"gorm.io/gorm"
@@ -79,4 +84,47 @@ func (c *talentCache) GetArray(usernames []string) []*models.Talent {
 
 func (c *talentCache) Invalidate(username string) {
 	c.cache.InvalidateString(username)
+}
+
+func (c *talentCache) SetAllTalents(tableName string, talents string) {
+	queueKey := fmt.Sprintf("%s:%s", constants.AllTalentCacheKey, tableName)
+	fwRedis.RedisStore().Set(context.Background(), queueKey, talents, constants.AllTalentCacheExp)
+}
+
+func (c *talentCache) GetAllTalents(tableName string) []*models.Talent {
+	queueKey := fmt.Sprintf("%s:%s", constants.AllTalentCacheKey, tableName)
+	res, err := fwRedis.RedisStore().Get(context.Background(), queueKey).Result()
+	if err != nil && !errors.Is(err, redis.Nil) {
+		rlog.Error(err)
+		return nil
+	}
+
+	if errors.Is(err, redis.Nil) {
+		var talents []models.Talent
+		err = myDb.GetDb().Table(tableName).Find(&talents).Error
+		if err != nil {
+			rlog.Error(err)
+			return nil
+		}
+
+		byt, err := json.Marshal(&talents)
+		if err != nil {
+			rlog.Error(err)
+			return nil
+		}
+		c.SetAllTalents(tableName, string(byt))
+		res = fwRedis.RedisStore().Get(context.Background(), queueKey).Val()
+	}
+
+	var talentList []*models.Talent
+	if err = json.Unmarshal([]byte(res), &talentList); err != nil {
+		rlog.Error(err)
+		return nil
+	}
+	return talentList
+}
+
+func (c *talentCache) InvalidateAllTalents(tableName string) {
+	queueKey := fmt.Sprintf("%s:%s", constants.AllTalentCacheKey, tableName)
+	fwRedis.RedisStore().Del(context.Background(), queueKey)
 }
