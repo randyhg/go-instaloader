@@ -40,7 +40,7 @@ func verificationStart(cmd *cobra.Command, args []string) {
 
 	fmt.Println("================================ Verification Process Started ================================")
 	for {
-		q, err := fwRedis.RedisQueue().RPop(ctx, models.RedisJobQueueKey).Result()
+		q, err := fwRedis.RedisStore().RPop(ctx, models.RedisJobQueueKey).Result()
 
 		if errors.Is(err, redis.Nil) {
 			rlog.Debug(models.RedisJobQueueKey, ":no queue")

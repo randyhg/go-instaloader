@@ -16,7 +16,7 @@ func CheckProfileURL(talent *models.Talent, url string) (bool, string, error) {
 	profile, err := instaloader.GetProfileNode(talent.Username)
 	if err != nil {
 		byt, _ := json.Marshal(talent)
-		fwRedis.RedisQueue().RPush(context.Background(), models.RedisJobQueueKey+"_err", string(byt))
+		fwRedis.RedisStore().RPush(context.Background(), models.RedisJobQueueKey+"_err", string(byt))
 		return false, "", err
 	}
 

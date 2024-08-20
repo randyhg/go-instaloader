@@ -87,7 +87,7 @@ func (s *sheetService) GetTalents(ctx context.Context, fetchRange string) ([]*mo
 			if err != nil {
 				rlog.Error(err)
 			} else {
-				fwRedis.RedisQueue().LPush(context.Background(), models.RedisJobQueueKey, string(byt))
+				fwRedis.RedisStore().LPush(context.Background(), models.RedisJobQueueKey, string(byt))
 			}
 		}
 

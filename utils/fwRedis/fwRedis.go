@@ -26,7 +26,7 @@ func RedisInit() {
 	})
 }
 
-func RedisQueue() redis.UniversalClient {
+func RedisStore() redis.UniversalClient {
 	return rdsQueue.client
 }
 

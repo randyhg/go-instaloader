@@ -24,7 +24,7 @@ type Lock struct {
 
 func (lock *Lock) tryLock() (ok bool, err error) {
 	ctx := context.Background()
-	cmd := fwRedis.RedisQueue().SetNX(ctx, lock.key(), lock.token, time.Duration(lock.timeout)*time.Second)
+	cmd := fwRedis.RedisStore().SetNX(ctx, lock.key(), lock.token, time.Duration(lock.timeout)*time.Second)
 	err = cmd.Err()
 	if err == redis.Nil {
 		// The lock was not successful, it already exists.
@@ -39,13 +39,13 @@ func (lock *Lock) tryLock() (ok bool, err error) {
 func (lock *Lock) UnlockDeferDefault() (err error) {
 	time.Sleep(time.Duration(default_timeout) * time.Second)
 	ctx := context.Background()
-	err = fwRedis.RedisQueue().Del(ctx, lock.key()).Err()
+	err = fwRedis.RedisStore().Del(ctx, lock.key()).Err()
 	return
 }
 
 func (lock *Lock) Unlock() (err error) {
 	ctx := context.Background()
-	err = fwRedis.RedisQueue().Del(ctx, lock.key()).Err()
+	err = fwRedis.RedisStore().Del(ctx, lock.key()).Err()
 	return
 }
 
@@ -55,7 +55,7 @@ func (lock *Lock) key() string {
 
 func (lock *Lock) AddTimeout(ex_time int64) (ok bool, err error) {
 	ctx := context.Background()
-	cmd := fwRedis.RedisQueue().TTL(ctx, lock.key())
+	cmd := fwRedis.RedisStore().TTL(ctx, lock.key())
 	err = cmd.Err()
 	if err != nil {
 		rlog.Error("redis get failed:", err)
@@ -63,7 +63,7 @@ func (lock *Lock) AddTimeout(ex_time int64) (ok bool, err error) {
 
 	TTL := cmd.Val()
 	if TTL > 0 {
-		setCmd := fwRedis.RedisQueue().Set(ctx, lock.key(), lock.token, TTL+time.Duration(ex_time)*time.Second)
+		setCmd := fwRedis.RedisStore().Set(ctx, lock.key(), lock.token, TTL+time.Duration(ex_time)*time.Second)
 		err = setCmd.Err()
 		if err == redis.Nil {
 			return false, nil

@@ -20,7 +20,7 @@ func CheckStoryURL(talent *models.Talent, url string, storyLimit int) (bool, str
 	stories, err := instaloader.GetStoryNode(talent.Username, storyLimit)
 	if err != nil {
 		byt, _ := json.Marshal(talent)
-		fwRedis.RedisQueue().RPush(context.Background(), models.RedisJobQueueKey, string(byt))
+		fwRedis.RedisStore().RPush(context.Background(), models.RedisJobQueueKey, string(byt))
 		return false, "", err
 	}
 

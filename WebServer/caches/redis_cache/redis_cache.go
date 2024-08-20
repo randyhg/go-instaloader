@@ -55,7 +55,7 @@ func (c *RedisCache) GetIfPresent(id int64) (interface{}, bool) {
 
 	key := c.getKey(id)
 	ctx := context.Background()
-	getCmd := fwRedis.RedisQueue().Get(ctx, key)
+	getCmd := fwRedis.RedisStore().Get(ctx, key)
 	// The data read by redis is nil or read error
 	if err := getCmd.Err(); err != nil && err != redis.Nil {
 		return nil, false
@@ -99,7 +99,7 @@ func (c *RedisCache) set(key string, input interface{}) error {
 		return err
 	}
 	ctx := context.Background()
-	cmd := fwRedis.RedisQueue().Set(ctx, key, jStr, c.expire)
+	cmd := fwRedis.RedisStore().Set(ctx, key, jStr, c.expire)
 	if err := cmd.Err(); err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func (c *RedisCache) Get(id int64, out interface{}) (interface{}, error) {
 
 	key := c.getKey(id)
 	ctx := context.Background()
-	getCmd := fwRedis.RedisQueue().Get(ctx, key)
+	getCmd := fwRedis.RedisStore().Get(ctx, key)
 	// The data read by redis is nil or read error
 	if err := getCmd.Err(); err != nil && err != redis.Nil {
 		return nil, err
@@ -155,7 +155,7 @@ func (c *RedisCache) GetString(s string, out interface{}) (interface{}, error) {
 
 	key := c.getKeyString(s)
 	ctx := context.Background()
-	getCmd := fwRedis.RedisQueue().Get(ctx, key)
+	getCmd := fwRedis.RedisStore().Get(ctx, key)
 	// The data read by redis is nil or read error
 	if err := getCmd.Err(); err != nil && err != redis.Nil {
 		return nil, err
@@ -191,7 +191,7 @@ func (c *RedisCache) GetString(s string, out interface{}) (interface{}, error) {
 
 func (c *RedisCache) GetByKey(key string) (interface{}, error) {
 	ctx := context.Background()
-	getCmd := fwRedis.RedisQueue().Get(ctx, key)
+	getCmd := fwRedis.RedisStore().Get(ctx, key)
 	// The data read by redis is nil or read error
 	if err := getCmd.Err(); err != nil && err != redis.Nil {
 		return nil, err
@@ -228,27 +228,27 @@ func (c *RedisCache) GetByKey(key string) (interface{}, error) {
 }
 func (c *RedisCache) Del(key string) error {
 	ctx := context.Background()
-	_, err := fwRedis.RedisQueue().Del(ctx, key).Result()
+	_, err := fwRedis.RedisStore().Del(ctx, key).Result()
 	return err
 }
 func (c *RedisCache) Invalidate(id int64) error {
 	key := c.getKey(id)
 	ctx := context.Background()
-	_, err := fwRedis.RedisQueue().Del(ctx, key).Result()
+	_, err := fwRedis.RedisStore().Del(ctx, key).Result()
 	return err
 }
 
 func (c *RedisCache) InvalidateString(username string) error {
 	key := c.getKeyString(username)
 	ctx := context.Background()
-	_, err := fwRedis.RedisQueue().Del(ctx, key).Result()
+	_, err := fwRedis.RedisStore().Del(ctx, key).Result()
 	return err
 }
 
 func (c *RedisCache) InvalidateAll() error {
 	key := fmt.Sprintf("%s:*", c.keyPrefix)
 	ctx := context.Background()
-	_, err := fwRedis.RedisQueue().Del(ctx, key).Result()
+	_, err := fwRedis.RedisStore().Del(ctx, key).Result()
 	return err
 }
 
@@ -260,7 +260,7 @@ func (c *RedisCache) GetArray(ids []int64, outType reflect.Type) (outList []inte
 		keys = append(keys, c.getKey(id))
 	}
 	ctx := context.Background()
-	values, err := fwRedis.RedisQueue().MGet(ctx, keys...).Result()
+	values, err := fwRedis.RedisStore().MGet(ctx, keys...).Result()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -295,7 +295,7 @@ func (c *RedisCache) GetArray(ids []int64, outType reflect.Type) (outList []inte
 func (c *RedisCache) Exists(id int64) bool {
 	key := c.getKey(id)
 	ctx := context.Background()
-	ret := fwRedis.RedisQueue().Exists(ctx, key).Val()
+	ret := fwRedis.RedisStore().Exists(ctx, key).Val()
 	return ret == 1
 }
 

@@ -42,7 +42,7 @@ func fetchStart(cmd *cobra.Command, args []string) {
 			if err != nil {
 				rlog.Error(err)
 			} else {
-				fwRedis.RedisQueue().LPush(ctx, models.RedisJobQueueKey, string(byt))
+				fwRedis.RedisStore().LPush(ctx, models.RedisJobQueueKey, string(byt))
 			}
 		}
 	}

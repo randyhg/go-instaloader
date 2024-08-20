@@ -28,7 +28,7 @@ func (v *verifService) VerifTalentService(storyLimit int, url string) error {
 
 func (v *verifService) startVerification(ctx context.Context, url string, storyLimit int, queueKey string) {
 	for {
-		q, err := fwRedis.RedisQueue().RPop(ctx, queueKey).Result()
+		q, err := fwRedis.RedisStore().RPop(ctx, queueKey).Result()
 
 		if errors.Is(err, redis.Nil) {
 			rlog.Info("job finished!")
