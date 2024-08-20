@@ -7,8 +7,6 @@ import (
 	"go-instaloader/models"
 	"go-instaloader/models/request"
 	"go-instaloader/models/response"
-	"go-instaloader/utils/myDb"
-	"go-instaloader/utils/rlog"
 )
 
 var TalentController = new(talentController)
@@ -49,17 +47,21 @@ func (t *talentController) UpdateTalent(ctx iris.Context) {
 
 func (t *talentController) DeleteTalent(ctx iris.Context) {
 	req := request.GetBodyToMap(ctx)
-	id := request.GetValueInt64Default(req, "id", 0)
+	username := request.GetValueString(req, "username")
 
-	if id <= 0 {
-		response.FailWithMessageV2("failed to get id", ctx)
+	if username == "" {
+		response.FailWithMessageV2("failed to get username", ctx)
+		return
 	}
 
-	tableName := myDb.GetMonthTableName(models.Talent{})
-	err := myDb.GetDb().Table(tableName).Where("id = ?", id).Delete(&models.Talent{}).Error
-	if err != nil {
-		rlog.Error(err)
-		response.FailWithMessageV2("failed to delete record", ctx)
+	talent := caches.TalentCache.Get(username)
+	if talent == nil {
+		response.FailWithMessageV2("talent not found", ctx)
+		return
+	}
+
+	if err := services.TalentService.DeleteTalentData(talent); err != nil {
+		response.FailWithMessageV2("failed to delete talent", ctx)
 		return
 	}
 	response.OkWithMessageV2("ok", nil, ctx)
