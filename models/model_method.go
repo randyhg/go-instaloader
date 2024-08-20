@@ -13,6 +13,9 @@ func (t *Talent) AddStoryUrls(links []string) {
 }
 
 func (t *Talent) GetStoryUrls() string {
+	if t.StoryImgUrl == "" {
+		return ""
+	}
 	trimmed := strings.Trim(t.StoryImgUrl, "[]")
 	urls := strings.Split(trimmed, ", ")
 	byt, err := json.Marshal(&urls)
