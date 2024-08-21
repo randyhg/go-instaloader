@@ -27,7 +27,7 @@ func (s *fetchService) FetchTalent(fetchRange string, ctx iris.Context) error {
 			//return nil
 		}
 
-		rlog.Info("talents data pushed to redis")
+		rlog.Info("talents pushed to redis")
 	}()
 	return nil
 }
