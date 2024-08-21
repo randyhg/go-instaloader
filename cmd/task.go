@@ -9,7 +9,6 @@ import (
 	"go-instaloader/utils/myDb"
 	"go-instaloader/utils/rlog"
 	"gorm.io/gorm/schema"
-	"log"
 )
 
 var taskCmd = &cobra.Command{
@@ -24,19 +23,25 @@ func init() {
 }
 
 func taskStart(cmd *cobra.Command, args []string) {
+	go func() {
+		// running it at startup
+		getTalentData()
+		createMonthTable()
+	}()
+
 	c := cron.New()
-	err := c.AddFunc("0 0 * * *", func() { // 1 day
+	err := c.AddFunc("0 5 * * *", func() { // everyday at 05:00 AM
 		createMonthTable()
 	})
 	if err != nil {
-		log.Fatal("Error adding cron job:", err)
+		rlog.Fatal("Error adding cron job:", err)
 	}
 
-	err = c.AddFunc("*/300 * * * *", func() { // 5 minutes
+	err = c.AddFunc("5 * * * *", func() { // every 5 minutes
 		getTalentData()
 	})
 	if err != nil {
-		log.Fatal("Error adding cron job:", err)
+		rlog.Fatal("Error adding cron job:", err)
 	}
 
 	c.Start()
