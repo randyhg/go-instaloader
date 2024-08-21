@@ -101,7 +101,7 @@ func (c *talentCache) GetAllTalents(tableName string) []*models.Talent {
 
 	if errors.Is(err, redis.Nil) {
 		var talents []models.Talent
-		err = myDb.GetDb().Table(tableName).Find(&talents).Error
+		err = myDb.GetDb().Table(tableName).Order("created_at DESC").Find(&talents).Error
 		if err != nil {
 			rlog.Error(err)
 			return nil

@@ -68,7 +68,7 @@ func createNextMothTable(dst schema.Tabler) {
 func getTalentData() {
 	tableName := myDb.GetMonthTableName(models.Talent{})
 	var talents []models.Talent
-	err := myDb.GetDb().Table(tableName).Find(&talents).Error
+	err := myDb.GetDb().Table(tableName).Order("created_at DESC").Find(&talents).Error
 	if err != nil {
 		rlog.Error(err)
 		return
