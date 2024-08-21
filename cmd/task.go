@@ -30,14 +30,16 @@ func taskStart(cmd *cobra.Command, args []string) {
 	}()
 
 	c := cron.New()
-	err := c.AddFunc("0 5 * * *", func() { // everyday at 05:00 AM
+	//err := c.AddFunc("0 5 * * *", func() { // everyday at 05:00 AM
+	err := c.AddFunc("@every 12h", func() { // everyday at 05:00 AM
 		createMonthTable()
 	})
 	if err != nil {
 		rlog.Fatal("Error adding cron job:", err)
 	}
 
-	err = c.AddFunc("0 */5 * * *", func() { // every 5 minutes
+	//err = c.AddFunc("0 */5 * * *", func() { // every 5 minutes
+	err = c.AddFunc("@every 5m", func() { // every 5 minutes
 		getTalentData()
 	})
 	if err != nil {
