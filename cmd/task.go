@@ -37,7 +37,7 @@ func taskStart(cmd *cobra.Command, args []string) {
 		rlog.Fatal("Error adding cron job:", err)
 	}
 
-	err = c.AddFunc("5 * * * *", func() { // every 5 minutes
+	err = c.AddFunc("0 */5 * * *", func() { // every 5 minutes
 		getTalentData()
 	})
 	if err != nil {
