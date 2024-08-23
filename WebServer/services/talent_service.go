@@ -35,6 +35,7 @@ func (t *talentService) UpsertTalentData(talent *models.Talent) error {
 		return err
 	}
 	caches.TalentCache.Invalidate(talent.Username)
+	caches.TalentCache.InvalidateAllTalents(tableName)
 	return nil
 }
 
@@ -55,6 +56,7 @@ func (t *talentService) UpdateTalentData(talent *models.Talent) error {
 		return err
 	}
 	caches.TalentCache.Invalidate(talent.Username)
+	caches.TalentCache.InvalidateAllTalents(tableName)
 	return nil
 }
 
@@ -66,5 +68,6 @@ func (c *talentService) DeleteTalentData(talent *models.Talent) error {
 		return err
 	}
 	caches.TalentCache.Invalidate(talent.Username)
+	caches.TalentCache.InvalidateAllTalents(tableName)
 	return nil
 }
