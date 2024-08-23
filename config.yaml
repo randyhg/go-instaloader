@@ -1,4 +1,5 @@
 Host: 0.0.0.0:8091
+Env: "dev"
 
 # SpreadSheet
 SpreadSheetId: "12c-0mUcrOe1UIxS53N6vLhC8fKxqWFyVaCDJASt-IiA"
@@ -22,9 +23,14 @@ MySqlUrl: root:123456@tcp(127.0.0.1:3309)/xmdb?charset=utf8mb4&parseTime=True&lo
 MySqlMaxIdle: 5
 MySqlMaxOpen: 10
 
+# Redis
 Redis:
   Host: ['127.0.0.1:6379']
   DB: 0
   Password:
   MaxIdle: 100
   MaxActive: 500
+
+# Log
+LogDir: "logs/"
+LogFileName: "instaloader.log"
