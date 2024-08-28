@@ -20,6 +20,7 @@ func CheckProfileURL(talent *models.Talent, url string) (bool, string, error) {
 		return false, "", err
 	}
 
+	rlog.Debug(profile.Data)
 	if profile.Data == nil {
 		rlog.Error("profile not found")
 		return false, fmt.Sprintf("%s's profile not found", talent.Username), nil
