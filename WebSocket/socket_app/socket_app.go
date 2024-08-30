@@ -6,6 +6,7 @@ import (
 	"github.com/kataras/iris/v12/middleware/logger"
 	"go-instaloader/WebServer/app"
 	"go-instaloader/WebSocket/socket_event"
+	"go-instaloader/config"
 	"go-instaloader/utils/rlog"
 	"log"
 )
@@ -32,7 +33,7 @@ func SocketStart() {
 
 	socket.HandleMany("GET POST", "/socket.io/{any:path}", iris.FromStd(Server))
 	if err := socket.Run(
-		iris.Addr(":8091"),
+		iris.Addr(":"+config.Instance.SocketPort),
 		iris.WithoutPathCorrection,
 		iris.WithoutServerError(iris.ErrServerClosed),
 	); err != nil {
