@@ -1,8 +1,11 @@
 package services
 
 import (
+	"context"
 	"errors"
-	"github.com/kataras/iris/v12"
+	socketio "github.com/googollee/go-socket.io"
+	"go-instaloader/WebSocket/socket_resp"
+	"go-instaloader/models/constants"
 	"go-instaloader/utils/rlog"
 )
 
@@ -10,7 +13,7 @@ var FetchService = new(fetchService)
 
 type fetchService struct{}
 
-func (s *fetchService) FetchTalent(fetchRange string, ctx iris.Context) error {
+func (s *fetchService) FetchTalent(fetchRange string, ctx context.Context, sck *socketio.Conn) error {
 	sheet := newSheetService()
 	if sheet == nil {
 		return errors.New("unable to get talents")
@@ -28,6 +31,7 @@ func (s *fetchService) FetchTalent(fetchRange string, ctx iris.Context) error {
 		}
 
 		rlog.Info("talents pushed to redis")
+		socket_resp.DoEmit(*sck, constants.FetchEvent, "fetch talents success")
 	}()
 	return nil
 }

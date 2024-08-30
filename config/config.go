@@ -12,8 +12,9 @@ import (
 var Instance Config
 
 type Config struct {
-	Host string `yaml:"Host"`
-	Env  string `yaml:"Env"`
+	Host       string `yaml:"Host"`
+	SocketPort string `yaml:"SocketPort"`
+	Env        string `yaml:"Env"`
 
 	// spreadsheet
 	SpreadSheetId string `yaml:"SpreadSheetId"`
