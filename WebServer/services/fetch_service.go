@@ -5,6 +5,7 @@ import (
 	"errors"
 	socketio "github.com/googollee/go-socket.io"
 	"go-instaloader/WebSocket/socket_resp"
+	"go-instaloader/models/constants"
 	"go-instaloader/utils/rlog"
 )
 
@@ -30,7 +31,7 @@ func (s *fetchService) FetchTalent(fetchRange string, ctx context.Context, sck *
 		}
 
 		rlog.Info("talents pushed to redis")
-		socket_resp.DoEmit(*sck, "fetch", "fetch talents success")
+		socket_resp.DoEmit(*sck, constants.FetchEvent, "fetch talents success")
 	}()
 	return nil
 }

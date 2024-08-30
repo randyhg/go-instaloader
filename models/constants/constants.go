@@ -10,5 +10,9 @@ const (
 )
 
 const (
+	// event name
 	ErrorNotice = "errorNotice"
+	TestEvent   = "test"
+	FetchEvent  = "fetch"
+	VerifyEvent = "verify"
 )
