@@ -8,3 +8,7 @@ const (
 	AllTalentCacheKey = "cache/talent/all"
 	TalentCacheKey    = "cache/talent"
 )
+
+const (
+	ErrorNotice = "errorNotice"
+)
