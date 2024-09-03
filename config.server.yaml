@@ -1,0 +1,40 @@
+Host: 0.0.0.0:8091
+SocketPort: 8092
+Env: "dev"
+
+PyInstaloaderDomain: "http://127.0.0.1:8090"
+
+# SpreadSheet
+SpreadSheetId: "12c-0mUcrOe1UIxS53N6vLhC8fKxqWFyVaCDJASt-IiA"
+SheetName: "Sheet3"
+MaxFetchRange: "A2:E100"
+StatusColumn: "E"
+RemarkColumn: "F"
+
+# Queue
+DelayWhenNoJobInSeconds: 4
+DelayWhenErrorInSeconds: 5
+DelayWhenJobDoneInSeconds: 2
+
+# Google API Cred
+ServiceKeyPath: "service_key.json"
+CredentialPath: "credentials.json"
+TokenPath: "token.json"
+
+# DB(s)
+ShowSql: true
+MySqlUrl: root:123456@tcp(127.0.0.1:3306)/instaloader?charset=utf8mb4&parseTime=True&loc=Local
+MySqlMaxIdle: 5
+MySqlMaxOpen: 10
+
+# Redis
+Redis:
+  Host: ['127.0.0.1:6379']
+  DB: 0
+  Password:
+  MaxIdle: 100
+  MaxActive: 500
+
+# Log
+LogDir: "logs/"
+LogFileName: "instaloader.log"
