@@ -13,58 +13,75 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 )
 
 var FileNotExistErr = errors.New("file not exist")
 
+//func GetHttpClient() (client *http.Client, err error) {
+//	// read json credential file
+//	b, err := os.ReadFile(config.Instance.CredentialPath)
+//	if err != nil {
+//		rlog.Errorf("unable to read client secret file: %v", err)
+//		return nil, err
+//	}
+//
+//	// get config
+//	config1, err := google.ConfigFromJSON(b, sheets.SpreadsheetsScope)
+//	if err != nil {
+//		rlog.Errorf("unable to parse client secret file to config: %v", err)
+//		return nil, err
+//	}
+//
+//	// get token
+//	tokFile := config.Instance.TokenPath
+//	tok, tokErr := tokenFromFile(tokFile)
+//	if tokErr != nil {
+//		if errors.Is(tokErr, FileNotExistErr) {
+//			// if not exist, create a new one
+//			tok = getTokenFromWeb(config1)
+//
+//			// save the token
+//			if err = saveTokenToFile(tokFile, tok); err != nil {
+//				return nil, err
+//			}
+//		} else {
+//			rlog.Errorf("get token from %s err: %s", tokFile, tokErr.Error())
+//			return nil, tokErr
+//		}
+//	}
+//
+//	if tok.Expiry.Before(time.Now()) {
+//		rlog.Info("token expired. refreshing the token....")
+//		// do refresh token
+//		refTok, err := refreshToken(tok, config1)
+//		if err != nil {
+//			rlog.Fatal(err)
+//		}
+//		// assign to client
+//		client = config1.Client(context.Background(), refTok)
+//		return client, nil
+//	}
+//
+//	// assign to client
+//	client = config1.Client(context.Background(), tok)
+//	return
+//}
+
 func GetHttpClient() (client *http.Client, err error) {
-	// read json credential file
-	b, err := os.ReadFile(config.Instance.CredentialPath)
+	jsonKey, err := os.ReadFile(config.Instance.ServiceKeyPath)
 	if err != nil {
 		rlog.Errorf("unable to read client secret file: %v", err)
 		return nil, err
 	}
 
-	// get config
-	config1, err := google.ConfigFromJSON(b, sheets.SpreadsheetsScope)
+	config1, err := google.JWTConfigFromJSON(jsonKey, sheets.SpreadsheetsScope)
 	if err != nil {
 		rlog.Errorf("unable to parse client secret file to config: %v", err)
 		return nil, err
 	}
 
-	// get token
-	tokFile := config.Instance.TokenPath
-	tok, tokErr := tokenFromFile(tokFile)
-	if tokErr != nil {
-		if errors.Is(tokErr, FileNotExistErr) {
-			// if not exist, create a new one
-			tok = getTokenFromWeb(config1)
-
-			// save the token
-			if err = saveTokenToFile(tokFile, tok); err != nil {
-				return nil, err
-			}
-		} else {
-			rlog.Errorf("get token from %s err: %s", tokFile, tokErr.Error())
-			return nil, tokErr
-		}
-	}
-
-	if tok.Expiry.Before(time.Now()) {
-		rlog.Info("token expired. refreshing the token....")
-		// do refresh token
-		refTok, err := refreshToken(tok, config1)
-		if err != nil {
-			rlog.Fatal(err)
-		}
-		// assign to client
-		client = config1.Client(context.Background(), refTok)
-		return client, nil
-	}
-
 	// assign to client
-	client = config1.Client(context.Background(), tok)
+	client = config1.Client(context.Background())
 	return
 }
 

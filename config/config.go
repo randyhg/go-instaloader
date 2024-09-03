@@ -31,6 +31,7 @@ type Config struct {
 	DelayWhenJobDoneInSeconds int `yaml:"DelayWhenJobDoneInSeconds"`
 
 	// google api cred
+	ServiceKeyPath string `yaml:"ServiceKeyPath"`
 	CredentialPath string `yaml:"CredentialPath"`
 	TokenPath      string `yaml:"TokenPath"`
 
