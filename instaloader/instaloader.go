@@ -3,6 +3,7 @@ package instaloader
 import (
 	"encoding/json"
 	"fmt"
+	"go-instaloader/config"
 	"go-instaloader/models/response"
 	"go-instaloader/utils/rlog"
 	"io/ioutil"
@@ -12,8 +13,8 @@ import (
 )
 
 const (
-	GetStoryNodeURL   = "http://127.0.0.1:8090/api/profile/get_story_node"
-	GetProfileNodeURL = "http://127.0.0.1:8090/api/profile/get_profile_node"
+	GetStoryNodeURL   = "/api/profile/get_story_node"
+	GetProfileNodeURL = "/api/profile/get_profile_node"
 )
 
 func GetStoryNode(username string, intLimit int) (*response.StoryNodeResponse, error) {
@@ -22,8 +23,7 @@ func GetStoryNode(username string, intLimit int) (*response.StoryNodeResponse, e
 	params := url.Values{}
 	params.Add("username", username)
 	params.Add("limit", limit)
-
-	fullURL := fmt.Sprintf("%s?%s", GetStoryNodeURL, params.Encode())
+	fullURL := fmt.Sprintf("%s/%s?%s", config.Instance.PyInstaloaderDomain, GetStoryNodeURL, params.Encode())
 	rlog.Debugf("URL: %s", fullURL)
 
 	resp, err := http.Get(fullURL)
@@ -66,7 +66,7 @@ func GetProfileNode(username string) (*response.ProfileNodeResponse, error) {
 	params := url.Values{}
 	params.Add("username", username)
 
-	fullURL := fmt.Sprintf("%s?%s", GetProfileNodeURL, params.Encode())
+	fullURL := fmt.Sprintf("%s/%s?%s", config.Instance.PyInstaloaderDomain, GetProfileNodeURL, params.Encode())
 	rlog.Debug("URL:", fullURL)
 
 	resp, err := http.Get(fullURL)

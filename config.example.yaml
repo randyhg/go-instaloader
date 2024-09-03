@@ -2,6 +2,8 @@ Host: 0.0.0.0:8091
 SocketPort: 8092
 Env: "dev"
 
+PyInstaloaderDomain: "http://127.0.0.1:8090"
+
 # SpreadSheet
 SpreadSheetId: "12c-0mUcrOe1UIxS53N6vLhC8fKxqWFyVaCDJASt-IiA"
 SheetName: "Sheet3"

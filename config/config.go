@@ -16,6 +16,8 @@ type Config struct {
 	SocketPort string `yaml:"SocketPort"`
 	Env        string `yaml:"Env"`
 
+	PyInstaloaderDomain string `yaml:"PyInstaloaderDomain"`
+
 	// spreadsheet
 	SpreadSheetId string `yaml:"SpreadSheetId"`
 	SheetName     string `yaml:"SheetName"`
