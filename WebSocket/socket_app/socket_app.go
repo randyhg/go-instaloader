@@ -2,6 +2,7 @@ package socket_app
 
 import (
 	socketio "github.com/googollee/go-socket.io"
+	"github.com/iris-contrib/middleware/cors"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/middleware/logger"
 	"go-instaloader/WebServer/app"
@@ -21,6 +22,13 @@ func SocketStart() {
 	irisLogConfig := logger.DefaultConfig()
 	irisLogConfig.LogFuncCtx = app.IrisLogFunc
 	socket.Use(logger.New(irisLogConfig))
+	socket.UseRouter(cors.New(cors.Options{
+		MaxAge:           600,
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{iris.MethodGet, iris.MethodPost /*, iris.MethodOptions, iris.MethodHead, iris.MethodDelete, iris.MethodPut*/},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: true,
+	}))
 
 	socket_event.InitSocketEvent(Server)
 
