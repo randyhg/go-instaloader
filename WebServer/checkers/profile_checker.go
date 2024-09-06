@@ -1,13 +1,10 @@
 package checkers
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
 	"go-instaloader/instaloader"
 	"go-instaloader/models"
 	"go-instaloader/models/response"
-	"go-instaloader/utils/fwRedis"
 	"go-instaloader/utils/rlog"
 	"sync"
 )
@@ -15,8 +12,6 @@ import (
 func CheckProfileURL(talent *models.Talent, url string) (bool, string, error) {
 	profile, err := instaloader.GetProfileNode(talent.Username)
 	if err != nil {
-		byt, _ := json.Marshal(talent)
-		fwRedis.RedisStore().RPush(context.Background(), models.RedisJobQueueKey+"_err", string(byt))
 		return false, "", err
 	}
 
