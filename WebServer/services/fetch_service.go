@@ -19,7 +19,7 @@ func (s *fetchService) FetchTalent(fetchRange string, ctx context.Context, sck *
 		return errors.New("unable to get talents")
 	}
 	go func() {
-		talents, err := newSheetService().GetTalents(ctx, fetchRange)
+		talents, err := sheet.GetTalents(ctx, fetchRange)
 		if err != nil {
 			rlog.Errorf("unable to get talents: %s", err.Error())
 			//return err
