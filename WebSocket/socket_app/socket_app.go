@@ -9,7 +9,6 @@ import (
 	"go-instaloader/WebSocket/socket_event"
 	"go-instaloader/config"
 	"go-instaloader/utils/rlog"
-	"log"
 )
 
 var Server = socketio.NewServer(nil)
@@ -34,7 +33,7 @@ func SocketStart() {
 
 	go func() {
 		if err := Server.Serve(); err != nil {
-			log.Fatalf("socketio listen error: %s\n", err)
+			rlog.Fatalf("socketio listen error: %s\n", err)
 		}
 	}()
 	defer Server.Close()
@@ -45,6 +44,6 @@ func SocketStart() {
 		iris.WithoutPathCorrection,
 		iris.WithoutServerError(iris.ErrServerClosed),
 	); err != nil {
-		log.Fatal("failed run app: ", err)
+		rlog.Fatal("failed run app: ", err)
 	}
 }

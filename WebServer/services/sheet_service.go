@@ -12,7 +12,6 @@ import (
 	"go-instaloader/utils/rlog"
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
-	"log"
 )
 
 type sheetService struct {
@@ -101,7 +100,7 @@ func (s *sheetService) UpdateTalentStatus(ctx context.Context, status int, uuid,
 
 	resp, err := s.srv.Spreadsheets.Values.Get(spreadSheetId, config.Instance.MaxFetchRange).Do()
 	if err != nil {
-		log.Fatalf("Unable to retrieve data from sheet: %v", err)
+		rlog.Fatalf("Unable to retrieve data from sheet: %v", err)
 	}
 
 	conditionColumn := 1

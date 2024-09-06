@@ -61,7 +61,7 @@ func Init() {
 	viper.AddConfigPath(".")
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Fatalf("Error reading config file, %s", err)
+		rlog.Fatalf("Error reading config file, %s", err)
 	}
 	err = viper.Unmarshal(&Instance)
 	if err != nil {
