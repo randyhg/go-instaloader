@@ -17,7 +17,13 @@ DelayWhenErrorInSeconds: 5
 DelayWhenJobDoneInSeconds: 2
 
 # Google API Cred
-ServiceKeyPath: "service_key.json"
+ServiceKeys: [
+  "service_keys/service1.json.min.json",
+  "service_keys/service2.json.min.json",
+  "service_keys/service3.json.min.json",
+  "service_keys/service4.json.min.json",
+  "service_keys/service5.json.min.json"
+]
 CredentialPath: "credentials.json"
 TokenPath: "token.json"
 
