@@ -1,10 +1,13 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"go-instaloader/utils/rlog"
 	"log"
+	"os"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -31,9 +34,9 @@ type Config struct {
 	DelayWhenJobDoneInSeconds int `yaml:"DelayWhenJobDoneInSeconds"`
 
 	// google api cred
-	ServiceKeyPath string `yaml:"ServiceKeyPath"`
-	CredentialPath string `yaml:"CredentialPath"`
-	TokenPath      string `yaml:"TokenPath"`
+	ServiceKeys    []string `yaml:"ServiceKeys"`
+	CredentialPath string   `yaml:"CredentialPath"`
+	TokenPath      string   `yaml:"TokenPath"`
 
 	// db
 	ShowSql      bool        `yaml:"ShowSql"`
@@ -67,8 +70,7 @@ func Init() {
 	if err != nil {
 		log.Fatalf("unable to decode into struct, %v", err)
 	}
-	WriteLog()
-	fullSheetRange(&Instance)
+	configInitFunc()
 
 	// auto reload config if there is any changes
 	viper.WatchConfig()
@@ -77,14 +79,42 @@ func Init() {
 		if err != nil {
 			log.Fatalf("unable to decode into struct, %v", err)
 		}
-		WriteLog()
-		fullSheetRange(&Instance)
+		configInitFunc()
 	})
 
 }
 
+func configInitFunc() {
+	WriteLog()
+	fullSheetRange(&Instance)
+	getServiceKeyEmail(Instance.ServiceKeys)
+}
+
 func fullSheetRange(config *Config) {
 	config.MaxFetchRange = fmt.Sprintf("%s!%s", config.SheetName, config.MaxFetchRange)
+}
+
+func getServiceKeyEmail(files []string) {
+	var emails []string
+	for _, file := range files {
+		fileByte, err := os.ReadFile(file)
+		if err != nil {
+			rlog.Errorf("error reading file %s: %v", file, err)
+			continue
+		}
+
+		var serviceKey map[string]interface{}
+		if err = json.Unmarshal(fileByte, &serviceKey); err != nil {
+			rlog.Errorf("error unmarshalling file %s: %v", file, err)
+			continue
+		}
+		email, ok := serviceKey["client_email"].(string)
+		if ok {
+			emails = append(emails, email)
+		}
+	}
+	emailList := strings.Join(emails, "\n")
+	fmt.Printf("============================>\nplease grant access to the spreadsheet for these emails:\n%s\n============================>\n", emailList)
 }
 
 func WriteLog() {

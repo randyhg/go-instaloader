@@ -10,9 +10,10 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/sheets/v4"
-	"log"
+	"math/rand"
 	"net/http"
 	"os"
+	"time"
 )
 
 var FileNotExistErr = errors.New("file not exist")
@@ -68,7 +69,15 @@ var FileNotExistErr = errors.New("file not exist")
 //}
 
 func GetHttpClient() (client *http.Client, err error) {
-	jsonKey, err := os.ReadFile(config.Instance.ServiceKeyPath)
+	// get random service key
+	serviceKeys := config.Instance.ServiceKeys
+	rand.Seed(time.Now().UnixNano())
+	randomIndex := rand.Intn(len(serviceKeys))
+	serviceKeyPath := serviceKeys[randomIndex]
+	rlog.Info("now using:", serviceKeyPath)
+
+	//jsonKey, err := os.ReadFile(config.Instance.ServiceKeyPath)
+	jsonKey, err := os.ReadFile(serviceKeyPath)
 	if err != nil {
 		rlog.Errorf("unable to read client secret file: %v", err)
 		return nil, err
