@@ -15,9 +15,8 @@ import (
 var Instance Config
 
 type Config struct {
-	Host       string `yaml:"Host"`
-	SocketPort string `yaml:"SocketPort"`
-	Env        string `yaml:"Env"`
+	Host string `yaml:"Host"`
+	Env  string `yaml:"Env"`
 
 	PyInstaloaderDomain string `yaml:"PyInstaloaderDomain"`
 

@@ -35,7 +35,7 @@ func handleSignal(server net.Listener) {
 	}()
 }
 
-func IrisLogFunc(ctx *context.Context, latency time.Duration) {
+func irisLogFunc(ctx *context.Context, latency time.Duration) {
 	var ip, method, path string
 
 	status := ctx.GetStatusCode()
@@ -62,7 +62,7 @@ func IrisInit() {
 
 	app.Logger().SetOutput(rlog.GetLogger().GetWriter())
 	irisLogConfig := logger.DefaultConfig()
-	irisLogConfig.LogFuncCtx = IrisLogFunc
+	irisLogConfig.LogFuncCtx = irisLogFunc
 	app.Use(logger.New(irisLogConfig))
 	app.Use(cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},

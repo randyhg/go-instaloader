@@ -1,5 +1,4 @@
 Host: 0.0.0.0:8091
-SocketPort: 8092
 Env: "dev"
 
 PyInstaloaderDomain: "http://127.0.0.1:8090"

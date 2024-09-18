@@ -6,11 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-redis/redis/v8"
-	socketio "github.com/googollee/go-socket.io"
 	"go-instaloader/WebServer/checkers"
-	"go-instaloader/WebSocket/socket_resp"
 	"go-instaloader/models"
-	"go-instaloader/models/constants"
 	"go-instaloader/utils/fwRedis"
 	"go-instaloader/utils/rlog"
 	"math/rand"
@@ -21,27 +18,25 @@ var VerifService = new(verifService)
 
 type verifService struct{}
 
-func (v *verifService) VerifTalentService(storyLimit int, url string, sck *socketio.Conn) error {
+func (v *verifService) VerifTalentService(storyLimit int, url string) error {
 	if storyLimit <= 0 || url == "" {
 		return errors.New("nothing to verif")
 	}
-	go v.startVerification(context.Background(), url, storyLimit, models.RedisJobQueueKey, sck)
+	go v.startVerification(context.Background(), url, storyLimit, models.RedisJobQueueKey)
 	return nil
 }
 
-func (v *verifService) startVerification(ctx context.Context, url string, storyLimit int, queueKey string, sck *socketio.Conn) {
+func (v *verifService) startVerification(ctx context.Context, url string, storyLimit int, queueKey string) {
 	for {
 		q, err := fwRedis.RedisStore().RPop(ctx, queueKey).Result()
 
 		if errors.Is(err, redis.Nil) {
 			rlog.Info("job finished!")
-			socket_resp.DoEmit(*sck, constants.VerifyEvent, "verify talents finished")
 			break
 		}
 
 		if err != nil {
 			rlog.Error(models.RedisJobQueueKey, "error getting queue", err)
-			socket_resp.DoEmitError(*sck, err)
 			break
 		}
 
@@ -58,7 +53,6 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 		sheet := newSheetService()
 		if sheet == nil {
 			rlog.Error("sheet service is nil")
-			socket_resp.DoEmitError(*sck, errors.New("sheet service is nil"))
 			break
 		}
 
@@ -67,7 +61,6 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 		if err != nil {
 			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, err.Error())
 			rlog.Info("job paused!")
-			socket_resp.DoEmitError(*sck, err)
 			break
 		}
 
