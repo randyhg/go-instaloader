@@ -43,3 +43,7 @@ Redis:
 # Log
 LogDir: "logs/"
 LogFileName: "instaloader.log"
+
+# Tg
+TeleBotToken: "someToken"
+TeleGroupId: "1838271"

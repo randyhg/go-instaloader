@@ -1,11 +1,17 @@
 package services
 
 import (
+	"fmt"
 	"go-instaloader/WebServer/caches"
+	"go-instaloader/config"
 	"go-instaloader/models"
 	"go-instaloader/utils/myDb"
 	"go-instaloader/utils/rlog"
 	"gorm.io/gorm/clause"
+	"net/http"
+	"net/url"
+	"path/filepath"
+	"runtime"
 )
 
 var TalentService = new(talentService)
@@ -70,4 +76,25 @@ func (c *talentService) DeleteTalentData(talent *models.Talent) error {
 	caches.TalentCache.Invalidate(talent.Username)
 	caches.TalentCache.InvalidateAllTalents(tableName)
 	return nil
+}
+
+func ErrorHandler(err error) {
+	_, file, line, _ := runtime.Caller(1)
+	file = filepath.Base(file)
+
+	// send error log to tg
+	errorMsg := fmt.Sprintf("*error occurred on go-instaloader*\n\n`%s:%d:`\n%s", file, line, err.Error())
+	fullUrl := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", config.Instance.TeleBotToken)
+	data := url.Values{}
+	data.Set("chat_id", config.Instance.TeleGroupId)
+	data.Set("text", errorMsg)
+	data.Set("parse_mode", "Markdown")
+
+	_, err = http.PostForm(fullUrl, data)
+	if err != nil {
+		rlog.Error(err)
+		return
+	}
+
+	//rlog.Info("sent successfully!")
 }

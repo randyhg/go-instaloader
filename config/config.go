@@ -47,6 +47,10 @@ type Config struct {
 	// log
 	LogDir      string `yaml:"LogDir"`
 	LogFileName string `yaml:"LogFileName"`
+
+	// tg bot
+	TeleBotToken string `yaml:"TeleBotToken"`
+	TeleGroupId  string `yaml:"TeleGroupId"`
 }
 
 type RedisConfig struct {

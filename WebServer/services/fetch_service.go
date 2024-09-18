@@ -19,15 +19,16 @@ func (s *fetchService) FetchTalent(fetchRange string, ctx iris.Context) error {
 		talents, err := sheet.GetTalents(ctx, fetchRange)
 		if err != nil {
 			rlog.Errorf("unable to get talents: %s", err.Error())
-			//return err
-		}
+			ErrorHandler(err)
+		} else {
+			if talents == nil {
+				rlog.Info("no talents found")
+				ErrorHandler(errors.New("no talents found"))
+				return
+			}
 
-		if talents == nil {
-			rlog.Info("no talents found")
-			//return nil
+			rlog.Info("talents pushed to redis")
 		}
-
-		rlog.Info("talents pushed to redis")
 	}()
 	return nil
 }

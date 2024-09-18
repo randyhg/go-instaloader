@@ -37,13 +37,15 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 
 		if err != nil {
 			rlog.Error(models.RedisJobQueueKey, "error getting queue", err)
+			ErrorHandler(err)
 			break
 		}
 
 		// parse talent
-		talent := v.parseTalentQueue(q)
-		if talent == nil {
+		talent, err := v.parseTalentQueue(q)
+		if err != nil {
 			rlog.Error("error parsing queue", q, err)
+			ErrorHandler(err)
 			i := time.Duration(randomInt())
 			time.Sleep(i * time.Second)
 			continue
@@ -53,6 +55,7 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 		sheet := newSheetService()
 		if sheet == nil {
 			rlog.Error("sheet service is nil")
+			ErrorHandler(errors.New("sheet service is nil"))
 			break
 		}
 
@@ -60,6 +63,7 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 		isPass, resultMsg, err := v.CheckStoryAndProfile(talent, url, storyLimit)
 		if err != nil {
 			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, err.Error())
+			ErrorHandler(err)
 			rlog.Info("job paused!")
 			break
 		}
@@ -76,6 +80,7 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 		// store to DB
 		if err = TalentService.UpsertTalentData(talent); err != nil {
 			rlog.Error(err)
+			ErrorHandler(err)
 			remark = fmt.Sprint("failed to store talent data to DB")
 			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, remark)
 			i := time.Duration(randomInt())
@@ -89,12 +94,13 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 	}
 }
 
-func (v *verifService) parseTalentQueue(s string) *models.Talent {
+func (v *verifService) parseTalentQueue(s string) (*models.Talent, error) {
 	var talent *models.Talent
 	if err := json.Unmarshal([]byte(s), &talent); err != nil {
-		return nil
+		rlog.Error(err)
+		return nil, err
 	}
-	return talent
+	return talent, nil
 }
 
 func (v *verifService) CheckStoryAndProfile(talent *models.Talent, url string, storyLimit int) (bool, string, error) {
