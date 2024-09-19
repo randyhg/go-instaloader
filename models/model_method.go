@@ -25,3 +25,22 @@ func (t *Talent) GetStoryUrls() string {
 	}
 	return string(byt)
 }
+
+func (t *Talent) AddStoryPaths(paths []string) {
+	joinedStr := fmt.Sprintf("[%s]", strings.Join(paths, ", "))
+	t.StoryImgPath = joinedStr
+}
+
+func (t *Talent) GetStoryPaths() string {
+	if t.StoryImgPath == "" {
+		return ""
+	}
+	trimmed := strings.Trim(t.StoryImgPath, "[]")
+	paths := strings.Split(trimmed, ", ")
+	byt, err := json.Marshal(&paths)
+	if err != nil {
+		rlog.Error(err)
+		return ""
+	}
+	return string(byt)
+}

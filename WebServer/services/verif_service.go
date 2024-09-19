@@ -55,6 +55,7 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 		sheet := newSheetService()
 		if sheet == nil {
 			rlog.Error("sheet service is nil")
+			fwRedis.RedisStore().RPush(context.Background(), models.RedisJobQueueKey, q)
 			ErrorHandler(errors.New("sheet service is nil"))
 			break
 		}
@@ -63,6 +64,7 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 		isPass, resultMsg, err := v.CheckStoryAndProfile(talent, url, storyLimit)
 		if err != nil {
 			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, err.Error())
+			fwRedis.RedisStore().RPush(context.Background(), models.RedisJobQueueKey, q)
 			ErrorHandler(err)
 			rlog.Info("job paused!")
 			break
@@ -81,6 +83,7 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 		if err = TalentService.UpsertTalentData(talent); err != nil {
 			rlog.Error(err)
 			ErrorHandler(err)
+			fwRedis.RedisStore().RPush(context.Background(), models.RedisJobQueueKey, q)
 			remark = fmt.Sprint("failed to store talent data to DB")
 			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, remark)
 			i := time.Duration(randomInt())

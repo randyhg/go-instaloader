@@ -1,14 +1,12 @@
 package checkers
 
 import (
-	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"go-instaloader/instaloader"
 	"go-instaloader/models"
 	"go-instaloader/models/response"
-	"go-instaloader/utils/fwRedis"
+	"go-instaloader/utils/rlog"
 	"io"
 	"net/http"
 	"os"
@@ -19,8 +17,6 @@ import (
 func CheckStoryURL(talent *models.Talent, url string, storyLimit int) (bool, string, error) {
 	stories, err := instaloader.GetStoryNode(talent.Username, storyLimit)
 	if err != nil {
-		byt, _ := json.Marshal(talent)
-		fwRedis.RedisStore().RPush(context.Background(), models.RedisJobQueueKey, string(byt))
 		return false, "", err
 	}
 
@@ -39,17 +35,16 @@ func checkStoryUrl(stories *response.StoryNodeResponse, talent *models.Talent, u
 	var isHasUrl bool
 	var mu sync.Mutex
 	var wg sync.WaitGroup
-	var storyUrls []string
+	var storyUrls, storyPaths []string
 
 	for i, story := range stories.Data {
 		wg.Add(1)
 
 		storyUrls = append(storyUrls, story.Node.DisplayURL)
+		storyPaths = append(storyPaths, downloadStoryImg(story.Node, talent, i+1))
 		go func(story *models.StoryNode) {
 			defer wg.Done()
 
-			// download story screenshot
-			downloadStoryImg(story, talent, i+1)
 			if story.IphoneStruct.StoryLinkStickers != nil {
 				for _, storyLink := range story.IphoneStruct.StoryLinkStickers {
 					storyUrl := storyLink.StoryLink.URL
@@ -65,18 +60,23 @@ func checkStoryUrl(stories *response.StoryNodeResponse, talent *models.Talent, u
 		}(story.Node)
 	}
 	talent.AddStoryUrls(storyUrls)
+	talent.AddStoryPaths(storyPaths)
 
 	wg.Wait()
 	return isHasUrl
 }
 
-func downloadStoryImg(story *models.StoryNode, talent *models.Talent, storyNum int) {
+func downloadStoryImg(story *models.StoryNode, talent *models.Talent, storyNum int) string {
 	fileName := fmt.Sprintf("%d.png", storyNum)
 
 	// cristiano/1.png
 	outputFilePath := filepath.Join("stories", talent.Username, fileName)
 
-	downloadFile(story.DisplayURL, outputFilePath)
+	if err := downloadFile(story.DisplayURL, outputFilePath); err != nil {
+		rlog.Error(err)
+		return ""
+	}
+	return outputFilePath
 }
 
 func downloadFile(url string, outputPath string) error {
