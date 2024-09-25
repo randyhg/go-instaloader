@@ -8,3 +8,13 @@ const (
 	AllTalentCacheKey = "cache/talent/all"
 	TalentCacheKey    = "cache/talent"
 )
+
+type ConfigColumn int
+
+const (
+	UsernameCol ConfigColumn = iota
+	StatusCol
+	RemarkCol
+	TalentUrlCol
+	TalentCountCol
+)

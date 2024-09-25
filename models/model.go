@@ -1,8 +1,9 @@
 package models
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -22,7 +23,7 @@ type Model struct {
 
 type Talent struct {
 	Model
-	Uuid          string         `gorm:"type:varchar(36)" json:"uuid"`
+	SheetId       string         `gorm:"type:varchar(36)" json:"sheet_id"`
 	Username      string         `gorm:"unique;not null;size:191" json:"username"`
 	Url           string         `gorm:"type:text;not null" json:"url"`
 	Status        int            `gorm:"default:0" json:"status"`

@@ -16,9 +16,8 @@ type verifController struct {
 func (c *verifController) VerifProfileAndStoryTalents(ctx iris.Context) {
 	req := request.GetBodyToMap(ctx)
 	storyLimit := request.GetValueIntDefault(req, "story_limit", models.DefaultStoryLimit)
-	url := request.GetValueString(req, "url")
 
-	if err := services.VerifService.VerifTalentService(storyLimit, url); err != nil {
+	if err := services.VerifService.VerifTalentService(storyLimit); err != nil {
 		response.FailWithMessageV2(err.Error(), ctx)
 		return
 	}

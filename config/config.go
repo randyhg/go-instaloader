@@ -21,11 +21,13 @@ type Config struct {
 	PyInstaloaderDomain string `yaml:"PyInstaloaderDomain"`
 
 	// spreadsheet
-	SpreadSheetId string `yaml:"SpreadSheetId"`
-	SheetName     string `yaml:"SheetName"`
-	MaxFetchRange string `yaml:"MaxFetchRange"`
-	StatusColumn  string `yaml:"StatusColumn"`
-	RemarkColumn  string `yaml:"RemarkColumn"`
+	SpreadSheetId   string `yaml:"SpreadSheetId"`
+	SheetName       string `yaml:"SheetName"`
+	MaxFetchRange   string `yaml:"MaxFetchRange"`
+	StatusColumn    string `yaml:"StatusColumn"`
+	RemarkColumn    string `yaml:"RemarkColumn"`
+	ConfigSheetName string `yaml:"ConfigSheetName"`
+	ConfigCellRange string `yaml:"ConfigCellRange"`
 
 	// queue
 	DelayWhenNoJobInSeconds   int `yaml:"DelayWhenNoJobInSeconds"`

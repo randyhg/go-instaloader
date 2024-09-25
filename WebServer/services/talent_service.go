@@ -34,8 +34,8 @@ func (t *talentService) UpsertTalentData(talent *models.Talent) error {
 	tableName := myDb.GetMonthTableName(models.Talent{})
 
 	if err := myDb.GetDb().Table(tableName).Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: talent.Uuid}},
-		DoUpdates: clause.AssignmentColumns([]string{"status", "story_img_url"}),
+		Columns:   []clause.Column{{Name: talent.SheetId}},
+		DoUpdates: clause.AssignmentColumns([]string{"status", "story_img_url", "story_img_path", "url"}),
 	}).Create(&talent).Error; err != nil {
 		rlog.Error(err)
 		return err

@@ -5,28 +5,29 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-redis/redis/v8"
 	"go-instaloader/WebServer/checkers"
 	"go-instaloader/models"
 	"go-instaloader/utils/fwRedis"
 	"go-instaloader/utils/rlog"
 	"math/rand"
 	"time"
+
+	"github.com/go-redis/redis/v8"
 )
 
 var VerifService = new(verifService)
 
 type verifService struct{}
 
-func (v *verifService) VerifTalentService(storyLimit int, url string) error {
-	if storyLimit <= 0 || url == "" {
+func (v *verifService) VerifTalentService(storyLimit int) error {
+	if storyLimit <= 0 {
 		return errors.New("nothing to verif")
 	}
-	go v.startVerification(context.Background(), url, storyLimit, models.RedisJobQueueKey)
+	go v.startVerification(context.Background(), storyLimit, models.RedisJobQueueKey)
 	return nil
 }
 
-func (v *verifService) startVerification(ctx context.Context, url string, storyLimit int, queueKey string) {
+func (v *verifService) startVerification(ctx context.Context, storyLimit int, queueKey string) {
 	for {
 		q, err := fwRedis.RedisStore().RPop(ctx, queueKey).Result()
 
@@ -61,9 +62,9 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 		}
 
 		// check talent story and profile
-		isPass, resultMsg, err := v.CheckStoryAndProfile(talent, url, storyLimit)
+		isPass, resultMsg, err := v.CheckStoryAndProfile(talent, talent.Url, storyLimit)
 		if err != nil {
-			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, err.Error())
+			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Username, err.Error())
 			fwRedis.RedisStore().RPush(context.Background(), models.RedisJobQueueKey, q)
 			ErrorHandler(err)
 			rlog.Info("job paused!")
@@ -73,7 +74,7 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 		var remark string
 		if isPass { // verification pass
 			talent.Status = models.StatusOk
-			remark = fmt.Sprintf("both of %s's story and profile contain %s url", talent.Username, url)
+			remark = fmt.Sprintf("both of %s's story and profile contain %s url", talent.Username, talent.Url)
 		} else { // verification failed
 			talent.Status = models.StatusFail
 			remark = resultMsg
@@ -85,13 +86,13 @@ func (v *verifService) startVerification(ctx context.Context, url string, storyL
 			ErrorHandler(err)
 			fwRedis.RedisStore().RPush(context.Background(), models.RedisJobQueueKey, q)
 			remark = fmt.Sprint("failed to store talent data to DB")
-			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Uuid, remark)
+			sheet.UpdateTalentStatus(ctx, models.StatusFail, talent.Username, remark)
 			i := time.Duration(randomInt())
 			time.Sleep(i * time.Second)
 			continue
 		}
 
-		sheet.UpdateTalentStatus(ctx, talent.Status, talent.Uuid, remark)
+		sheet.UpdateTalentStatus(ctx, talent.Status, talent.Username, remark)
 		i := time.Duration(randomInt())
 		time.Sleep(i * time.Second)
 	}

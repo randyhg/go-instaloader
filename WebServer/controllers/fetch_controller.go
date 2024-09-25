@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"github.com/kataras/iris/v12"
 	"go-instaloader/WebServer/services"
 	"go-instaloader/models/request"
 	"go-instaloader/models/response"
+
+	"github.com/kataras/iris/v12"
 )
 
 var FetchController = new(fetchController)
