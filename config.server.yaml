@@ -10,6 +10,8 @@ SheetName: "Sheet3"
 MaxFetchRange: "A2:E100"
 StatusColumn: "E"
 RemarkColumn: "F"
+ConfigSheetName: "Config"
+ConfigCellRange: "A2:E2"
 
 # Queue
 DelayWhenNoJobInSeconds: 4
